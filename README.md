@@ -7,6 +7,10 @@ ANOM gives access to digital copies of archive materials only through a lol-welc
 This makes their digital archive documents rather difficult to use.
 The first step to making them easier to use is getting them out.
 
+## Dependencies
+* Python3 - https://www.python.org/downloads/
+* GraphicsMagick - http://www.graphicsmagick.org/README.html
+
 ## Usage
 `python3 exfiltrate.py '<document_applet_url>' [first_page] [last_page]`
 

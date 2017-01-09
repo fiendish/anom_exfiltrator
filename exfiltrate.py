@@ -98,7 +98,9 @@ class ExfiltrateThread(threading.Thread):
             return
 
         print("")
+        print("Processing request.")
         print("Press Ctrl+C to abort.")
+        print("Completed files will be put in the "+document_name+" folder.")
         print("Run again with the same parameters to resume exfiltration.")
 
         if not os.path.exists(document_name):

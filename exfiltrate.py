@@ -39,19 +39,9 @@ from socket import timeout
 def clearline():
     sys.stdout.write("\033[K")  # clear line
 
-def main(url, start, end):
-    which_page = ""
-
-    def int_handler(signal, frame):
-        print("")
-        print("Exit!")
-        try:
-            shutil.rmtree(which_page, ignore_errors=True)
-        finally:
-            sys.exit(0)
-
-    signal.signal(signal.SIGINT, int_handler)
-
+which_page = ""
+def main(url, start=None, end=None):
+    global which_page
     o = urlparse(url)
     qs = parse_qs(o.query)
 
@@ -76,9 +66,6 @@ def main(url, start, end):
         start = document_first_page
     if end is None:
         end = document_last_page
-
-    if not os.path.exists(document_name):
-        os.makedirs(document_name)
 
     print("")
     print("Press Ctrl+C to abort.")
@@ -139,11 +126,19 @@ def main(url, start, end):
         clearline()
         print("Assembling page "+str(page)+".", end="\r")
 
-        # GraphicsMagick Montage is perfect for reassembling the tiles
-        subprocess.run(["gm", "montage", "-mode", "concatenate", "-quality",
-                        "80", "-tile", "%dx%d" % (max_x, max_y),
-                        os.path.join(which_page, "*.JP2"),
-                        os.path.join(document_name, which_page+".jpg")])
+        if not os.path.exists(document_name):
+            os.makedirs(document_name)
+
+        try:
+            # GraphicsMagick Montage is perfect for reassembling the tiles
+            subprocess.run(["gm", "montage", "-mode", "concatenate", "-quality",
+                           "80", "-tile", "%dx%d" % (max_x, max_y),
+                           os.path.join(which_page, "*.JP2"),
+                           os.path.join(document_name, which_page+".jpg")])
+        except:
+            if not os.listdir(document_name):
+                os.rmdir(document_name)
+            raise
 
         clearline()
         print("Finished page "+str(page)+".")
@@ -162,7 +157,20 @@ def main(url, start, end):
     print("Done! Look in the "+document_name+" folder.")
 
 
+def exit_handler(signal=None, b=None):
+    print("")
+    try:
+        shutil.rmtree(which_page, ignore_errors=True)
+    finally:
+        if signal:
+            print("Exit!")
+            sys.exit(0)
+
+import atexit
+atexit.register(exit_handler)
+
 if __name__ == '__main__':
+    signal.signal(signal.SIGINT, exit_handler)
     start = None
     end = None
     if len(sys.argv) > 2:

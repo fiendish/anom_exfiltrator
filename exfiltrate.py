@@ -44,7 +44,7 @@ def clearline():
 class ExfiltrateThread(threading.Thread):
     def __init__(self, url, start=None, end=None):
         threading.Thread.__init__(self)
-        self._stop = threading.Event()
+        self._stopper = threading.Event()
         self._url = url
         self._start = start
         self._end = end
@@ -58,10 +58,10 @@ class ExfiltrateThread(threading.Thread):
 
     def stop(self):
         print("Stopping")
-        self._stop.set()
+        self._stopper.set()
 
     def stopped(self):
-        return self._stop.isSet()
+        return self._stopper.isSet()
     
     def join(self, timeout=None):
         self.stop()

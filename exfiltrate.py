@@ -35,142 +35,164 @@ import shutil
 import signal
 import sys
 from socket import timeout
+import threading
+import time
 
 def clearline():
     sys.stdout.write("\033[K")  # clear line
 
-which_page = ""
-def main(url, start=None, end=None):
-    global which_page
-    o = urlparse(url)
-    qs = parse_qs(o.query)
+class ExfiltrateThread(threading.Thread):
+    def __init__(self, url, start=None, end=None):
+        threading.Thread.__init__(self)
+        self._stop = threading.Event()
+        self._url = url
+        self._start = start
+        self._end = end
+        self._which_page = ""
+        
+    def cleanup(self):
+        try:
+            shutil.rmtree(self._which_page, ignore_errors=True)
+        finally:
+            return
 
-    firstpart = o.scheme + "://" + o.netloc + qs['dossier'][0]
+    def stop(self):
+        print("Stopping")
+        self._stop.set()
 
-    # the url encodes basic document information
-    document_title = qs['title'][0]
+    def stopped(self):
+        return self._stop.isSet()
+    
+    def join(self, timeout=None):
+        self.stop()
+        threading.Thread.join(self, timeout)
 
-    document_first_page = int(qs['first'][0].rsplit("_", 1)[1])
-    document_last_page = qs['last'][0].rsplit("_", 1)[1]
-    pad_zeroes = len(document_last_page)
-    document_last_page = int(document_last_page)
+    def run(self):
+        o = urlparse(self._url)
+        qs = parse_qs(o.query)
 
-    try:
-        document_name = qs['first'][0].split('/')[1].rsplit("_", 1)[0]
-        box_id = qs['first'][0].split('/')[0]
-    except:
-        document_name = qs['first'][0].rsplit("_", 1)[0]
-        box_id = ""
+        firstpart = o.scheme + "://" + o.netloc + qs['dossier'][0]
 
-    if start is None:
-        start = document_first_page
-    if end is None:
-        end = document_last_page
+        # the url encodes basic document information
+        document_title = qs['title'][0]
 
-    print("")
-    print("Press Ctrl+C to abort.")
-    print("Run again with the same parameters to resume exfiltration.")
+        document_first_page = int(qs['first'][0].rsplit("_", 1)[1])
+        document_last_page = qs['last'][0].rsplit("_", 1)[1]
+        pad_zeroes = len(document_last_page)
+        document_last_page = int(document_last_page)
 
-    # fetch next page
-    for page in range(start, end+1):
-        which_page = document_name + "_" + (('%0'+str(pad_zeroes)+"d") % page)
-        page_dir = which_page + "_img"
+        try:
+            document_name = qs['first'][0].split('/')[1].rsplit("_", 1)[0]
+            box_id = qs['first'][0].split('/')[0]
+        except:
+            document_name = qs['first'][0].rsplit("_", 1)[0]
+            box_id = ""
 
-        # skip completed pages
-        if os.path.exists(os.path.join(document_name, which_page+".jpg")):
-            continue
+        if self._start is None:
+            self._start = document_first_page
+        if self._end is None:
+            self._end = document_last_page
 
-        # Pages are composed of sub-image tiles, like a slippy map.
-        # Make a temporary dir for all of the pieces.
-        if not os.path.exists(which_page):
-            os.makedirs(which_page)
+        if self.stopped():
+            self.cleanup()
+            return
 
-        # Pages don't have uniform tile bounds, so we have to detect
-        # them for each page starting from something arbitrarily high.
-        max_y = 50
-        max_x = 50
-
-        cur_z = 1  # Zoom level. 16 is tiny, 4 is medium, 1 is large
-        cur_y = 0
-        while cur_y < max_y:
-            cur_x = 0
-            while cur_x < max_x:
-                tile = (page_dir + "_TILE_" + ('%03d' % cur_z) + "_"
-                        + ('%04d' % cur_y) + "_" + ('%04d' % cur_x) + ".JP2")
-                tile_url = firstpart + box_id + "/" + page_dir + "/" + tile
-
-                try:
-                    print("Fetching p" + str(page) + ",y" + str(cur_y) + ",x"
-                          + str(cur_x) + ".", end="\r")
-                    f = os.path.join(which_page, tile)
-                    with urllib.request.urlopen(tile_url, None, 10) as r, open(f, 'wb') as of:
-                        of.write(r.read())
-                    cur_x += 1
-                except timeout:
-                    print("Download timed out. Trying again.")
-                    continue  # try again
-                except urllib.error.HTTPError as e:
-                    if e.code == 404:
-                        if cur_y == 0:
-                            max_x = cur_x
-                        else:
-                            max_y = cur_y
-                            break
-                    else:
-                        print(str(e))
-                        raise
-                except urllib.error.URLError as e:
-                    print(str(e))
-            cur_y += 1
-
-        clearline()
-        print("Assembling page "+str(page)+".", end="\r")
+        print("")
+        print("Press Ctrl+C to abort.")
+        print("Run again with the same parameters to resume exfiltration.")
 
         if not os.path.exists(document_name):
             os.makedirs(document_name)
 
-        try:
-            # GraphicsMagick Montage is perfect for reassembling the tiles
-            subprocess.run(["gm", "montage", "-mode", "concatenate", "-quality",
-                           "80", "-tile", "%dx%d" % (max_x, max_y),
-                           os.path.join(which_page, "*.JP2"),
-                           os.path.join(document_name, which_page+".jpg")])
-        except:
-            if not os.listdir(document_name):
-                os.rmdir(document_name)
-            raise
+        # Throw in a title document.
+        with open(os.path.join(document_name, document_name+".txt"), "w") as tf:
+            tf.write("Title: " + document_title + "\n\n")
+            tf.write("Pages: " + str(document_first_page) + "-"
+                     + str(document_last_page) + "\n")
+
+        # fetch next page
+        for page in range(self._start, self._end+1):
+            self._which_page = document_name + "_" + (('%0'+str(pad_zeroes)+"d") % page)
+            page_dir = self._which_page + "_img"
+
+            # skip completed pages
+            if os.path.exists(os.path.join(document_name, self._which_page+".jpg")):
+                continue
+
+            # Pages are composed of sub-image tiles, like a slippy map.
+            # Make a temporary dir for all of the pieces.
+            if not os.path.exists(self._which_page):
+                os.makedirs(self._which_page)
+
+            # Pages don't have uniform tile bounds, so we have to detect
+            # them for each page starting from something arbitrarily high.
+            max_y = 50
+            max_x = 50
+
+            cur_z = 1  # Zoom level. 16 is tiny, 4 is medium, 1 is large
+            cur_y = 0
+            while cur_y < max_y:
+                cur_x = 0
+                while cur_x < max_x:
+                    if self.stopped():
+                        self.cleanup()
+                        return
+                    tile = (page_dir + "_TILE_" + ('%03d' % cur_z) + "_"
+                            + ('%04d' % cur_y) + "_" + ('%04d' % cur_x) + ".JP2")
+                    tile_url = firstpart + box_id + "/" + page_dir + "/" + tile
+
+                    try:
+                        print("Fetching p" + str(page) + ",y" + str(cur_y) + ",x"
+                              + str(cur_x) + ".", end="\r")
+                        f = os.path.join(self._which_page, tile)
+                        with urllib.request.urlopen(tile_url, None, 10) as r, open(f, 'wb') as of:
+                            of.write(r.read())
+                        cur_x += 1
+                    except timeout:
+                        print("Download timed out. Trying again.")
+                        continue  # try again
+                    except urllib.error.HTTPError as e:
+                        if e.code == 404:
+                            if cur_y == 0:
+                                max_x = cur_x
+                            else:
+                                max_y = cur_y
+                                break
+                        else:
+                            print(str(e))
+                            raise
+                    except urllib.error.URLError as e:
+                        print(str(e))
+                cur_y += 1
+
+            clearline()
+            print("Assembling page "+str(page)+".", end="\r")
+
+            try:
+                if not os.path.exists(document_name):
+                    os.makedirs(document_name)
+
+                # GraphicsMagick Montage is perfect for reassembling the tiles
+                subprocess.run(["gm", "montage", "-mode", "concatenate", "-quality",
+                               "80", "-tile", "%dx%d" % (max_x, max_y),
+                               os.path.join(self._which_page, "*.JP2"),
+                               os.path.join(document_name, self._which_page+".jpg")])
+            except:
+                if not os.listdir(document_name):
+                    os.rmdir(document_name)
+                raise
+
+            clearline()
+            print("Finished page "+str(page)+".")
+
+            # Clean up. Erase downloaded tile images for the assembled page.
+            shutil.rmtree(self._which_page, ignore_errors=True)
 
         clearline()
-        print("Finished page "+str(page)+".")
-
-        # Clean up. Erase downloaded tile images for the assembled page.
-        shutil.rmtree(which_page, ignore_errors=True)
-
-    # Throw in a title document.
-    with open(os.path.join(document_name, document_name+".txt"), "w") as tf:
-        tf.write("Title: " + document_title + "\n\n")
-        tf.write("Pages: " + str(document_first_page) + "-"
-                 + str(document_last_page) + "\n")
-
-    clearline()
-    print("")
-    print("Done! Look in the "+document_name+" folder.")
-
-
-def exit_handler(signal=None, b=None):
-    print("")
-    try:
-        shutil.rmtree(which_page, ignore_errors=True)
-    finally:
-        if signal:
-            print("Exit!")
-            sys.exit(0)
-
-import atexit
-atexit.register(exit_handler)
-
+        print("")
+        print("Done! Look in the "+document_name+" folder.")
+        
 if __name__ == '__main__':
-    signal.signal(signal.SIGINT, exit_handler)
     start = None
     end = None
     if len(sys.argv) > 2:
@@ -178,5 +200,22 @@ if __name__ == '__main__':
         end = int(start)
     if len(sys.argv) > 3:
         end = int(sys.argv[3])
-    main(sys.argv[1], start, end)
+
+    exfilt = ExfiltrateThread(sys.argv[1], start, end)
+    exfilt.daemon = True
+    exfilt.start()
+    
+    def die(a=None, b=None):
+        clearline()
+        print("")
+        print("Exit!")
+        exfilt.cleanup()
+        sys.exit(0)
+        
+    signal.signal(signal.SIGINT, die)
+
+    import atexit
+    atexit.register(exfilt.cleanup)
+    while True:
+        time.sleep(0.1)
 

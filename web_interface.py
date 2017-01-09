@@ -7,8 +7,12 @@ import threading
 import signal
 import sys
 
+threads = {}
+
 def exit_handler(signal=None, b=None):
     print("Shutting down web interface")
+    for t in threads:
+        threads[t].cleanup()
     sys.exit(0)
 
 signal.signal(signal.SIGINT, exit_handler)
@@ -27,9 +31,15 @@ class testHTTPServer_RequestHandler(SimpleHTTPRequestHandler):
                     url = urllib.parse.parse_qs(qs).get('url')
                     if url is not None:
                         url = url[0]
-                    exfilt = threading.Thread(target=exfiltrate.main, args=(url,))
+
+                    prev_thread = threads.get(url)
+                    if prev_thread:
+                        prev_thread.join()
+                    exfilt = exfiltrate.ExfiltrateThread(url)
                     exfilt.daemon = True
                     exfilt.start()
+                    threads[url] = exfilt
+
                     qs = urllib.parse.parse_qs(urllib.parse.urlparse(url).query)
                     msg = "<!doctype html><html lang=\"en\"><head>  <meta charset=\"utf-8\"><title>ANOM Exfiltrator</title></head><body>"
                     msg = "title: " + qs['title'][0] + "<br>"
@@ -44,6 +54,8 @@ class testHTTPServer_RequestHandler(SimpleHTTPRequestHandler):
                         folder = qs['first'][0].rsplit("_", 1)[0]
                     msg += "Your files are being downloaded to: "
                     msg += "<a href=\"/" + folder + "\">" + folder + "</a>\n"
+                    msg += "<br><br>This process can take a while.<br>"
+                    msg += "If the images aren't all there yet, just refresh the directory."
                     msg += "</body></html>"
                 else:
                     SimpleHTTPRequestHandler.do_GET(self)

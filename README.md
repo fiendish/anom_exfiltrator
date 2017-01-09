@@ -33,7 +33,7 @@ The first step to making them easier to use is getting them out.
 4. Instead of clicking on the document link to load their stupid Java applet, right-click and copy the link address.
 ![copy the link url](screenshots/screen4.png)
 
-5. In a terminal with python3 installed, paste the copied link address where the above usage note says \<document_applet_url\> as shown.
+5. In a terminal with python3 installed, paste the copied link address where the above usage note says \<document_applet_url\> as shown. Don't forget to wrap it in single quotes so that your terminal doesn't choke on certain symbols.
 ![running the command](screenshots/screen5.png)
 
 6. The result is a folder containing complete images of the document pages, plus a text file containing the full title.

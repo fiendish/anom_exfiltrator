@@ -59,10 +59,18 @@ def main(url, start, end):
 
     # the url encodes basic document information
     document_title = qs['title'][0]
-    box_id = qs['first'][0].split('/')[0]
-    document_name = qs['first'][0].split('/')[1].rsplit("_", 1)[0]
-    document_first_page = int(qs['first'][0].split('/')[1].rsplit("_", 1)[1])
-    document_last_page = int(qs['last'][0].split('/')[1].rsplit("_", 1)[1])
+
+    document_first_page = int(qs['first'][0].rsplit("_", 1)[1])
+    document_last_page = qs['last'][0].rsplit("_", 1)[1]
+    pad_zeroes = len(document_last_page)
+    document_last_page = int(document_last_page)
+
+    try:
+        document_name = qs['first'][0].split('/')[1].rsplit("_", 1)[0]
+        box_id = qs['first'][0].split('/')[0]
+    except:
+        document_name = qs['first'][0].rsplit("_", 1)[0]
+        box_id = ""
 
     if start is None:
         start = document_first_page
@@ -78,7 +86,7 @@ def main(url, start, end):
 
     # fetch next page
     for page in range(start, end+1):
-        which_page = document_name + "_" + ('%04d' % page)
+        which_page = document_name + "_" + (('%0'+str(pad_zeroes)+"d") % page)
         page_dir = which_page + "_img"
 
         # skip completed pages

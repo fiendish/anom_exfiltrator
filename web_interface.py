@@ -41,27 +41,25 @@ class testHTTPServer_RequestHandler(SimpleHTTPRequestHandler):
                     threads[url] = exfilt
 
                     qs = urllib.parse.parse_qs(urllib.parse.urlparse(url).query)
-                    msg = "<!doctype html><html lang=\"en\"><head>  <meta charset=\"utf-8\"><title>ANOM Exfiltrator</title></head><body>"
-                    msg = "title: " + qs['title'][0] + "<br>"
-                    msg += "dossier: " + qs['dossier'][0] + "<br>"
                     first = int(qs['first'][0].rsplit("_",1)[1])
                     last = int(qs['last'][0].rsplit("_",1)[1])
+                    folder = qs['first'][0].rsplit("_", 1)[0].replace("/","_",1)
+                    msg = "title: " + qs['title'][0] + "<br>"
+                    msg += "dossier: " + qs['dossier'][0] + "<br>"
                     msg += "pages: " + str(first) + "-" + str(last) + "<br>"
                     msg += "<br>"
-                    try:
-                        folder = qs['first'][0].split('/')[1].rsplit("_", 1)[0]
-                    except:
-                        folder = qs['first'][0].rsplit("_", 1)[0]
                     msg += "Your files are being downloaded to: "
                     msg += "<a href=\"/" + folder + "\">" + folder + "</a>\n"
                     msg += "<br><br>This process can take a while.<br>"
-                    msg += "If the images aren't all there yet, just refresh the directory."
-                    msg += "</body></html>"
+                    msg += "If the images aren't all there yet, just refresh the page."
+                    msg = exfiltrate.Templates.html.replace("%%BODY%%", msg)
                 else:
                     SimpleHTTPRequestHandler.do_GET(self)
                     return
         except Exception as e:
-            self.send_response(500)
+            self.send_response(200)
+            self.send_header('Content-type','text/plain')
+            self.end_headers()
             msg = "Internal Server Error: " + type(e).__name__ + " " + str(e)
             self.wfile.write(bytes(msg, "utf8"))
             return

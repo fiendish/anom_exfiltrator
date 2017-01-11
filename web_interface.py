@@ -38,16 +38,23 @@ threads = {}
 def exit_handler(signal=None, b=None):
     print("Shutting down web interface")
     for t in threads:
-        threads[t].cleanup()
+        threads[t].die()
     sys.exit(0)
 
 signal.signal(signal.SIGINT, exit_handler)
+
+class ExfiltratorThread(exfiltrate.Exfiltrator, threading.Thread):
+    def __init__(self, url):
+        exfiltrate.Exfiltrator.__init__(self, url)
+        threading.Thread.__init__(self)
+    def run(self):
+        self.exfiltrate()
 
 # HTTPRequestHandler class
 class testHTTPServer_RequestHandler(SimpleHTTPRequestHandler):
     # GET
     def do_GET(self):
-        try:   
+        try:
             if self.path == "/":
                 msg = open("index.html", "r").read()
             else:
@@ -59,9 +66,8 @@ class testHTTPServer_RequestHandler(SimpleHTTPRequestHandler):
                         url = url[0].strip()
                     prev_thread = threads.get(url)
                     if prev_thread:
-                        prev_thread.join()
-                    exfilt = exfiltrate.ExfiltrateThread(url)
-                    exfilt.daemon = True
+                        prev_thread.die()
+                    exfilt = ExfiltratorThread(url)
                     exfilt.start()
                     threads[url] = exfilt
 

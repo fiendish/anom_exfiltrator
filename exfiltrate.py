@@ -34,8 +34,7 @@ import shutil
 import signal
 import sys
 from socket import timeout
-import threading
-import time
+import concurrent.futures
 
 def clearline():
     sys.stdout.write("\033[K")  # clear line
@@ -43,10 +42,12 @@ def clearline():
 class Templates(object):
     @property
     def thumbnail(self):
-        return "<a href='%%URL%%' onclick=\"\
+        return "<div style='padding-right: 0.5em; padding-left: 0.5em;'>\
+                <a href='%%URL%%' onclick=\"\
                 document.getElementById('image').src='%%URL%%'; return false;\
-                \">%%REF%%<img src='%%URL%%' style='vertical-align:middle'\
-                 width='60%'></a><br>"
+                \">%%REF%%<br><img src='%%THUMB%%' onerror=\"var that=this;\
+                setTimeout(function(){that.src='%%THUMB%%'}, 10000);\"\
+                width='100%'></a></div><hr>"
     @property
     def html(self):
         return "<!doctype html><html lang='en'><head><meta charset='utf-8'>\
@@ -54,24 +55,30 @@ class Templates(object):
                 </html>"
     @property
     def frames_body(self):
-        return "<div id='title' style='text-align:center'>%%TITLE%%</div><br>\
-                <div id='content'><div id='left'>%%THUMBNAILS%%</div>\
-                <div id='right'><img id='image' src=''></div></div>"
+        return "<div id='content'><div id='left'>%%THUMBNAILS%%</div>\
+                <div id='right'>%%TITLE%%<br><img id='image' src=''></div></div>"
     @property
     def frames_style(self):
         return "<style>html,body {font-size:14pt; height: 100%; overflow: hidden; margin: 0;}\
             #content {height: 100%;}"\
-            "#left {float: left; width: 20%; height: 100%; overflow: auto; "\
-            "box-sizing: border-box; padding: 0.4em;}"\
-            "#right {float: left; width: 80%; height: 100%; overflow: auto;"\
-            "box-sizing: border-box; padding: 0.4em;}</style>"
+            "#left {float: left; min-width: 120px; width:8%; height: 100%; overflow: auto; "\
+            "box-sizing: border-box;}"\
+            "#right {height: 100%; overflow: auto;"\
+            "box-sizing: border-box; padding-left: 0.5em;}</style>"
 
 Templates = Templates() # properties only work on instances
 
-class ExfiltrateThread(threading.Thread):
-    def __init__(self, url, start=None, end=None):
-        threading.Thread.__init__(self)
-        self._stopper = threading.Event()
+class Exfiltrator(object):
+    def __init__(self, url):
+        self.setUrl(url)
+        self._executor = concurrent.futures.ThreadPoolExecutor(max_workers=3)
+        self._quit = False
+
+    def die(self):
+        self._quit = True
+        self._executor.shutdown(False)
+
+    def setUrl(self, url):
         # the url encodes basic document information
         self._url = url
         o = urlparse(self._url)
@@ -88,12 +95,6 @@ class ExfiltrateThread(threading.Thread):
             self._document = qs['first'][0].rsplit("_", 1)[0]
             self._box = ""
         self._firstpart = o.scheme + "://" + o.netloc + qs['dossier'][0] + self._box
-        self._start = start
-        if start is None:
-            self._start = self._first_page
-        self._end = end
-        if end is None:
-            self._end = self._last_page
         self._storagedir = self.boxstr() + self._document
         self._cur_page = ""
 
@@ -103,29 +104,23 @@ class ExfiltrateThread(threading.Thread):
         else:
             return ""
 
-    def cleanup(self):
+    def exitIfQuit(self):
+        if self._quit:
+            sys.exit()
+
+    def cleanup(self, path):
         try:
-            shutil.rmtree(self.boxstr()+self._cur_page, ignore_errors=True)
+            shutil.rmtree(path, ignore_errors=True)
         finally:
             return
-
-    def stop(self):
-        print("Stopping")
-        self._stopper.set()
-
-    def stopped(self):
-        return self._stopper.isSet()
-    
-    def join(self, timeout=None):
-        self.stop()
-        threading.Thread.join(self, timeout)
 
     def generateViewer(self):
         # Throw in a HTML viewer
         thumbnails = ""            
-        for page in range(self._start, self._end+1):
+        for page in range(self._first_page, self._last_page+1):
             p = self._storagedir + "_" + (('%0'+str(self._pad)+"d") % page)
             thumb = Templates.thumbnail.replace("%%URL%%", p + ".jpg")
+            thumb = thumb.replace("%%THUMB%%", "thumbs/"+p+"_tnl.jpg")
             thumb = thumb.replace("%%REF%%", "Page "+str(page))
             thumbnails += thumb           
         with open(os.path.join(self._storagedir, "index.html"), "w") as tf:
@@ -136,48 +131,81 @@ class ExfiltrateThread(threading.Thread):
             html = html.replace("%%THUMBNAILS%%", thumbnails)
             tf.write(html)
 
-    def fetch_page(self, zoom, page):
-        self._cur_page = self._document + "_" + (('%0'+str(self._pad)+"d") % page)
-        curPage = self._cur_page
-        storageDir = self._storagedir
-        filePrefix = self.boxstr()+curPage
+    def fetch_thumbnail(self, page):
+        # These run inside concurrent futures, so check for a terminated main.
+        self.exitIfQuit()
+        storage = os.path.join(self._storagedir, "thumbs")
+        curPage = self._document + "_" + (('%0'+str(self._pad)+"d") % page)
+        fileName = self.boxstr()+curPage
+        pageDir = curPage + "_img"
+
+        url = (self._firstpart + "/" + pageDir + "/" + pageDir 
+            + "_TILE_016_0000_0000.JP2")
+        fallback = (self._firstpart + "/" + curPage + "_tnl.jpg")
+        jp2 = os.path.join(storage, fileName+"_tnl.JP2")
+
+        print("Fetching thumbnail for page "+str(page), end="\r")
+        # skip completed thumbnails, but try the actual thumbnail as fallback
+        # in case zoom 16 doesn't exist for this page
+        while not os.path.exists(os.path.join(storage, fileName+"_tnl.jpg")):
+            try:
+                self.fetch_file(url, jp2)
+                subprocess.run(["gm", "mogrify", "-format", "jpg", jp2])
+                os.remove(jp2)
+            except urllib.error.HTTPError as e:
+                if e.code == 404 and url != fallback:
+                    url = fallback
+                else:
+                    raise
+        return True
+
+    def fetch_all_thumbnails(self):
+        if not os.path.exists(os.path.join(self._storagedir, "thumbs")):
+            os.makedirs(os.path.join(self._storagedir, "thumbs"))
+        pool = [self._executor.submit(self.fetch_thumbnail, page) for page in range(self._first_page, self._last_page+1)]
+        concurrent.futures.wait(pool, None, concurrent.futures.FIRST_EXCEPTION)
+        clearline()
+
+    def fetch_file(self, url, to_file):
+        # don't download twice, but retry on timeouts
+        while not os.path.exists(to_file):
+            try:
+                with urllib.request.urlopen(url, None, 10) as r, open(to_file, 'wb') as of:
+                    of.write(r.read())
+            except timeout:
+                continue
+
+    def fetch_page(self, page):
+        curPage = self._document + "_" + (('%0'+str(self._pad)+"d") % page)
+        storage = self._storagedir
+        fileName = self.boxstr()+curPage
         pageDir = curPage + "_img"
         
         # skip completed pages
-        if os.path.exists(os.path.join(storageDir, filePrefix+".jpg")):
+        if os.path.exists(os.path.join(storage, fileName+".jpg")):
             return True
 
         # Pages are composed of sub-image tiles, like a slippy map.
         # Make a temporary dir for all of the pieces.
-        if not os.path.exists(filePrefix):
-            os.makedirs(filePrefix)
+        if not os.path.exists(os.path.join(storage, fileName)):
+            os.makedirs(os.path.join(storage, fileName))
 
         # Pages don't have uniform tile counts, so we detect
         # them for each page starting from something arbitrarily high.
+        # Unfortunately this means not threading all the tile requests.
         max_y = 50
         max_x = 50
-
         y = 0
         while y < max_y:
             x = 0
             while x < max_x:
-                if self.stopped():
-                    self.cleanup()
-                    return False
-                tile = (pageDir + "_TILE_" + ('%03d' % zoom) + "_"
-                        + ('%04d' % y) + "_" + ('%04d' % x) + ".JP2")
-                tile_url = self._firstpart + "/" + pageDir + "/" + tile
+                tileFile = (pageDir + "_TILE_001_" + ('%04d' % y) + "_" 
+                     + ('%04d' % x) + ".JP2")
+                tileURL = self._firstpart + "/" + pageDir + "/" + tileFile
 
                 try:
-                    print("Fetching p" + str(page) + ",y" + str(y) + ",x"
-                          + str(x) + ".", end="\r")
-                    f = os.path.join(filePrefix, tile)
-                    with urllib.request.urlopen(tile_url, None, 10) as r, open(f, 'wb') as of:
-                        of.write(r.read())
+                    self.fetch_file(tileURL, os.path.join(storage, fileName, tileFile))
                     x += 1
-                except timeout:
-                    print("Download timed out. Trying again.")
-                    continue  # try again
                 except urllib.error.HTTPError as e:
                     if e.code == 404:
                         if y == 0:
@@ -188,48 +216,37 @@ class ExfiltrateThread(threading.Thread):
                     else:
                         print(str(e))
                         raise
-                except urllib.error.URLError as e:
-                    print(str(e))
             y += 1
 
         clearline()
         print("Assembling page "+str(page)+".", end="\r")
 
         try:
-            if not os.path.exists(storageDir):
-                os.makedirs(storageDir)
-
             # GraphicsMagick Montage is perfect for reassembling the tiles
             subprocess.run(["gm", "montage", "-mode", "concatenate", "-quality",
                            "80", "-tile", "%dx%d" % (max_x, max_y),
-                           os.path.join(filePrefix, "*.JP2"),
-                           os.path.join(storageDir, filePrefix+".jpg")])
-        except:
-            if not os.listdir(storageDir):
-                os.rmdir(storageDir)
-            raise
+                           os.path.join(storage, fileName, "*.JP2"),
+                           os.path.join(storage, fileName+".jpg")])
+        finally:        
+            # Clean up. Erase downloaded tile images for the assembled page.
+            self.cleanup(os.path.join(storage, fileName))
+            if not os.listdir(storage):
+                os.rmdir(storage)
 
         clearline()
         print("Finished page "+str(page)+".")
-
-        # Clean up. Erase downloaded tile images for the assembled page.
-        self.cleanup()
         return True
 
-    # returns True if done, False if stopped
-    # Note on zoom levels. 
-    # 16 is thumbnail, 4 is medium, 1 is full size
-    def fetch_desired_pages(self, zoom, start, end):
+    def fetch_desired_pages(self, start=None, end=None):
+        if not start:
+            start = self._first_page
+        if not end:
+            end = self._last_page
         for page in range(start, end+1):
-            if not self.fetch_page(zoom, page):
-                # stopped
-                return False
-        return True
+            self.exitIfQuit()
+            self.fetch_page(page)
 
-    def run(self):
-        if self.stopped():
-            return
-
+    def exfiltrate(self, start=None, end=None):
         print("")
         print("Processing request.")
         print("Press Ctrl+C to abort.")
@@ -239,22 +256,19 @@ class ExfiltrateThread(threading.Thread):
         if not os.path.exists(self._storagedir):
             os.makedirs(self._storagedir)
 
-        # Throw in a title document.
-        with open(os.path.join(self._storagedir, self._storagedir+".txt"), "w") as tf:
-            tf.write("Title: " + self._title + "\n\n")
-            tf.write("Pages: " + str(self._first_page) + "-"
-                     + str(self._last_page) + "\n")
-
         # Throw in a HTML viewer
+        print("Fetching thumbnails")
+        self.fetch_all_thumbnails()
+        self.exitIfQuit()
+        print("Done fetching thumbnails")
         self.generateViewer()
+        self.exitIfQuit()
+        print("Fetching pages")
+        self.fetch_desired_pages(start, end)
 
-        done = self.fetch_desired_pages(1, self._start, self._end)
         clearline()
         print("")
-        if done:
-            print("Done!")
-        else:
-            print("Stopped!")
+        print("Done!")
         print("Look in the "+self._storagedir+" folder.")
 
 
@@ -267,21 +281,15 @@ if __name__ == '__main__':
     if len(sys.argv) > 3:
         end = int(sys.argv[3])
 
-    exfilt = ExfiltrateThread(sys.argv[1], start, end)
-    exfilt.daemon = True
-    exfilt.start()
-    
-    def die(a=None, b=None):
-        clearline()
+    e = Exfiltrator(sys.argv[1])
+
+    def quit(a=None, b=None):
         print("")
         print("Exit!")
-        exfilt.cleanup()
         sys.exit(0)
-        
-    signal.signal(signal.SIGINT, die)
-
+    signal.signal(signal.SIGINT, quit)
     import atexit
-    atexit.register(exfilt.cleanup)
-    while True:
-        time.sleep(0.1)
+    atexit.register(e.die)
+
+    e.exfiltrate(start, end)
 

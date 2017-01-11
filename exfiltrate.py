@@ -25,6 +25,8 @@
 # python3 exfiltrate.py <document_url> [first_page] [last_page]
 #
 #
+import sys
+sys.dont_write_bytecode = True
 
 from urllib.parse import urlparse, parse_qs
 import urllib.request
@@ -32,7 +34,6 @@ import os
 import subprocess
 import shutil
 import signal
-import sys
 from socket import timeout
 import concurrent.futures
 
@@ -77,10 +78,11 @@ class Templates(object):
 Templates = Templates() # properties only work on instances
 
 class Exfiltrator(object):
-    def __init__(self, url):
-        self.setUrl(url)
+    def __init__(self, url, storage_prefix=None):
         self._executor = concurrent.futures.ThreadPoolExecutor(max_workers=3)
+        self._storage_prefix = storage_prefix
         self._quit = False
+        self.setUrl(url)
 
     def die(self):
         self._quit = True
@@ -103,9 +105,12 @@ class Exfiltrator(object):
             self._document = qs['first'][0].rsplit("_", 1)[0]
             self._box = ""
         self._firstpart = o.scheme + "://" + o.netloc + qs['dossier'][0] + self._box
-        self._storagedir = self.boxstr() + self._document
+        self._storagedir = self.boxstr + self._document
+        if self._storage_prefix:
+            self._storagedir = os.path.join(self._storage_prefix, self._storagedir)
         self._cur_page = ""
 
+    @property
     def boxstr(self):
         if self._box != "":
             return self._box+"_"
@@ -142,7 +147,7 @@ class Exfiltrator(object):
         self.exitIfQuit()
         storage = os.path.join(self._storagedir, "thumbs")
         curPage = self._document + "_" + (('%0'+str(self._pad)+"d") % page)
-        fileName = self.boxstr()+curPage
+        fileName = self.boxstr + curPage
         pageDir = curPage + "_img"
 
         url = (self._firstpart + "/" + pageDir + "/" + pageDir 
@@ -202,7 +207,7 @@ class Exfiltrator(object):
     def fetch_page(self, page, no_save=False):
         curPage = self._document + "_" + (('%0'+str(self._pad)+"d") % page)
         storage = self._storagedir
-        fileName = self.boxstr()+curPage
+        fileName = self.boxstr + curPage
         pageDir = curPage + "_img"
         pageFile = os.path.join(storage, fileName+".jpg")
 
@@ -281,13 +286,13 @@ class Exfiltrator(object):
         print("Completed files will be put in the "+self._storagedir+" folder.")
         print("Run again with the same parameters to resume exfiltration.")
         # Throw in a HTML viewer
+        with open(os.path.join(self._storagedir, "index.html"), "w") as tf:
+            tf.write(self.generateViewer())
+        self.exitIfQuit()
         print("Fetching thumbnails")
         self.fetch_all_thumbnails()
         self.exitIfQuit()
         print("Done fetching thumbnails")
-        with open(os.path.join(self._storagedir, "index.html"), "w") as tf:
-            tf.write(self.generateViewer())
-        self.exitIfQuit()
         print("Fetching pages")
         self.fetch_desired_pages(start, end)
 

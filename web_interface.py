@@ -25,33 +25,27 @@
 # python3 web_interface.py
 #
 #
+import sys
+sys.dont_write_bytecode = True
 
 from http.server import SimpleHTTPRequestHandler, HTTPServer
 import exfiltrate
 import urllib
 import threading
 import signal
-import sys
 import os
+import tempfile
 
-
+tempdir = tempfile.TemporaryDirectory()
 exfilt = None
 
 def exit_handler(signal=None, b=None):
     print("Shutting down web interface")
     if exfilt:
         exfilt.die()
-        exfilt.cleanup(exfilt._storagedir)
     sys.exit(0)
 
 signal.signal(signal.SIGINT, exit_handler)
-
-class ExfiltratorThread(exfiltrate.Exfiltrator, threading.Thread):
-    def __init__(self, url):
-        exfiltrate.Exfiltrator.__init__(self, url)
-        threading.Thread.__init__(self)
-    def run(self):
-        self.exfiltrate()
 
 class ExfiltrateWebRequestHandler(SimpleHTTPRequestHandler):        
     def text_response(self, text):
@@ -88,7 +82,9 @@ class ExfiltrateWebRequestHandler(SimpleHTTPRequestHandler):
                 if exfilt:
                     exfilt.die()
                     exfilt.cleanup(exfilt._storagedir)
-                exfilt = ExfiltratorThread(url)
+                # Replace the global exfiltrator with a new one so we can
+                # keep working while the old one cleans up.
+                exfilt = exfiltrate.Exfiltrator(url, tempdir.name)
                 self.html_response(exfilt.generateViewer())
                 return
             elif path.split("/")[0] == 'thumbs' and path.endswith("_tnl.jpg"):

@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python3  
 #
 # Copyright 2016 (c) Avital Kelman
 #
@@ -32,13 +32,16 @@ import urllib
 import threading
 import signal
 import sys
+import os
 
-threads = {}
+
+exfilt = None
 
 def exit_handler(signal=None, b=None):
     print("Shutting down web interface")
-    for t in threads:
-        threads[t].die()
+    if exfilt:
+        exfilt.die()
+        exfilt.cleanup(exfilt._storagedir)
     sys.exit(0)
 
 signal.signal(signal.SIGINT, exit_handler)
@@ -50,65 +53,78 @@ class ExfiltratorThread(exfiltrate.Exfiltrator, threading.Thread):
     def run(self):
         self.exfiltrate()
 
-# HTTPRequestHandler class
-class testHTTPServer_RequestHandler(SimpleHTTPRequestHandler):
-    # GET
-    def do_GET(self):
-        try:
-            if self.path == "/":
-                msg = open("index.html", "r").read()
-            else:
-                basepath = urllib.parse.urlparse(self.path).path
-                if basepath == "/exfiltrate_query":
-                    qs = urllib.parse.urlparse(self.path).query
-                    url = urllib.parse.parse_qs(qs).get('url')
-                    if url is not None:
-                        url = url[0].strip()
-                    prev_thread = threads.get(url)
-                    if prev_thread:
-                        prev_thread.die()
-                    exfilt = ExfiltratorThread(url)
-                    exfilt.start()
-                    threads[url] = exfilt
+class ExfiltrateWebRequestHandler(SimpleHTTPRequestHandler):        
+    def text_response(self, text):
+        self.send_response(200)
+        self.send_header('Content-type','text/plain')
+        self.end_headers()
+        self.wfile.write(bytes(text, "utf8"))
 
-                    qs = urllib.parse.parse_qs(urllib.parse.urlparse(url).query)
-                    first = int(qs['first'][0].rsplit("_",1)[1])
-                    last = int(qs['last'][0].rsplit("_",1)[1])
-                    folder = qs['first'][0].rsplit("_", 1)[0].replace("/","_",1)
-                    msg = "title: " + qs['title'][0] + "<br><br>"
-                    msg += "dossier: " + qs['dossier'][0] + "<br><br>"
-                    msg += "pages: " + str(first) + "-" + str(last) + "<br><br>"
-                    msg += "Your files are being downloaded to: "
-                    msg += "<a href=\"/" + folder + "\">" + folder + "</a>\n"
-                    msg += "<br><br>This process can take a while.<br>"
-                    msg += "If the images aren't all there yet, just refresh the page."
-                    msg = exfiltrate.Templates.html.replace("%%BODY%%", msg)
-                else:
-                    SimpleHTTPRequestHandler.do_GET(self)
-                    return
-        except Exception as e:
-            self.send_response(200)
-            self.send_header('Content-type','text/plain')
-            self.end_headers()
-            msg = "Internal Server Error: " + type(e).__name__ + " " + str(e)
-            self.wfile.write(bytes(msg, "utf8"))
-            return
-
+    def html_response(self, html):
         self.send_response(200)
         self.send_header('Content-type','text/html')
         self.end_headers()
-        self.wfile.write(bytes(msg, "utf8"))
-        return
+        self.wfile.write(bytes(html, "utf8"))
+
+    def image_response(self, image):
+        self.send_response(200)
+        self.send_header('Content-type', 'image/jpeg')
+        self.send_header('Content-length', sys.getsizeof(image))
+        self.end_headers()
+        self.wfile.write(image)
+
+    def do_GET(self):
+        try:
+            path = self.path.lstrip("/")
+            basepath = urllib.parse.urlparse(path).path
+            if path == "":
+                self.html_response(open("index.html", "r").read())
+            elif basepath == "exfiltrate_query":
+                qs = urllib.parse.urlparse(path).query
+                url = urllib.parse.parse_qs(qs).get('url')
+                if url is not None:
+                    url = url[0].strip()
+                global exfilt
+                if exfilt:
+                    exfilt.die()
+                    exfilt.cleanup(exfilt._storagedir)
+                exfilt = ExfiltratorThread(url)
+                self.html_response(exfilt.generateViewer())
+                return
+            elif path.split("/")[0] == 'thumbs' and path.endswith("_tnl.jpg"):
+                page = int(path.split("_")[-2])
+                self.image_response( exfilt.fetch_thumbnail(page, True) )
+                exfilt.cleanup(exfilt._storagedir)
+                return
+            elif path.endswith(".jpg"):
+                page = int(path.split("_")[-1].split(".")[0])
+                self.image_response(exfilt.fetch_page(page, True))
+                exfilt.cleanup(exfilt._storagedir)
+                return
+            else:
+                SimpleHTTPRequestHandler.do_GET(self)
+                return
+        except ConnectionError:
+            return
+        except SystemExit:
+            return
+        except Exception as e:
+            self.text_response("Internal Server Error: " + type(e).__name__ + " " + str(e))
+            raise
 
 def run():
     # Server settings
     # Choose port 8080 or 8000, for port 80, which is normally used for a http server, you need root access
     server_address = ('127.0.0.1', 8000)
-    httpd = HTTPServer(server_address, testHTTPServer_RequestHandler)
+    httpd = HTTPServer(server_address, ExfiltrateWebRequestHandler)
     print('Visit http://localhost:8000 in your web browser')
+    serve = threading.Thread(target=httpd.serve_forever)
     try:
-        httpd.serve_forever()
+        serve.daemon = True
+        serve.start()
+        serve.join()
     finally:
         print("Good bye")
 
-run()
+if __name__ == '__main__':
+    run()

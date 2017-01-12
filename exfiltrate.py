@@ -281,6 +281,10 @@ class Exfiltrator(object):
         print("Press Ctrl+C to abort.")
         print("Completed files will be put in the "+self._storagedir+" folder.")
         print("Run again with the same parameters to resume exfiltration.")
+
+        if not os.path.exists(self._storagedir):
+            os.makedirs(self._storagedir)
+
         # Throw in a HTML viewer
         with open(os.path.join(self._storagedir, "index.html"), "w") as tf:
             tf.write(self.generateViewer())

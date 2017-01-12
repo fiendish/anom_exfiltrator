@@ -37,9 +37,6 @@ import signal
 from socket import timeout
 import concurrent.futures
 
-def clearline():
-    sys.stdout.write("\033[K")  # clear line
-
 class Templates(object):
     @property
     def thumbnail(self):
@@ -79,7 +76,7 @@ Templates = Templates() # properties only work on instances
 
 class Exfiltrator(object):
     def __init__(self, url, storage_prefix=None):
-        self._executor = concurrent.futures.ThreadPoolExecutor(max_workers=3)
+        self._executor = concurrent.futures.ThreadPoolExecutor(max_workers=4)
         self._storage_prefix = storage_prefix
         self._quit = False
         self.setUrl(url)
@@ -155,7 +152,6 @@ class Exfiltrator(object):
         fallback = (self._firstpart + "/" + curPage + "_tnl.jpg")
         jp2 = os.path.join(storage, fileName+"_tnl.JP2")
 
-        print("Fetching thumbnail for page "+str(page), end="\r")
         # skip completed thumbnails, but try the actual thumbnail as fallback
         # in case zoom 16 doesn't exist for this page
         thumbpath = os.path.join(storage, fileName+"_tnl.jpg")
@@ -182,7 +178,6 @@ class Exfiltrator(object):
             os.makedirs(os.path.join(self._storagedir, "thumbs"))
         pool = [self._executor.submit(self.fetch_thumbnail, page) for page in range(self._first_page, self._last_page+1)]
         concurrent.futures.wait(pool, None, concurrent.futures.FIRST_EXCEPTION)
-        clearline()
 
     def fetch_url(self, url):
         while True:
@@ -224,6 +219,7 @@ class Exfiltrator(object):
             max_y = 50
             max_x = 50
             y = 0
+            print("Fetching pieces of page "+str(page)+".")
             while y < max_y:
                 x = 0
                 while x < max_x:
@@ -234,6 +230,7 @@ class Exfiltrator(object):
                     try:
                         tileDest = os.path.join(storage, fileName, tileFile)
                         self.fetch_to_file(tileURL, tileDest)
+                        print(".", end="")
                         x += 1
                     except urllib.error.HTTPError as e:
                         if e.code == 404:
@@ -247,8 +244,8 @@ class Exfiltrator(object):
                             raise
                 y += 1
 
-            clearline()
-            print("Assembling page "+str(page)+".", end="\r")
+            print("")
+            print("Assembling page "+str(page)+".")
 
             try:
                 # GraphicsMagick Montage is perfect for reassembling the tiles
@@ -262,7 +259,6 @@ class Exfiltrator(object):
                 if not os.listdir(storage):
                     os.rmdir(storage)
 
-        clearline()
         print("Finished page "+str(page)+".")
         if no_save:
             f = open(pageFile, "rb").read()
@@ -296,7 +292,6 @@ class Exfiltrator(object):
         print("Fetching pages")
         self.fetch_desired_pages(start, end)
 
-        clearline()
         print("")
         print("Done!")
         print("Look in the "+self._storagedir+" folder.")

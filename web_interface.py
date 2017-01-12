@@ -159,7 +159,7 @@ if __name__ == '__main__':
             
             toolbar = tk.Frame(self, padx=5, pady=5)
             toolbar.pack(side="bottom", fill="x")
-            qb = tk.Button(toolbar, text="Quit ANOM Exfiltrator", command=quit, padx=10, pady=10)
+            qb = tk.Button(toolbar, text="Quit ANOM Exfiltrator", command=self.quit, padx=10, pady=10)
             qb.pack(side="right")
             
             txtfrm = tk.Frame(self)

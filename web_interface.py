@@ -29,6 +29,10 @@ import sys
 sys.dont_write_bytecode = True
 
 from http.server import SimpleHTTPRequestHandler, HTTPServer
+from socketserver import ThreadingMixIn
+import tkinter as tk
+from tkinter import messagebox
+import webbrowser
 import exfiltrate
 import urllib
 import threading
@@ -110,10 +114,6 @@ class ExfiltrateWebRequestHandler(SimpleHTTPRequestHandler):
             self.text_response("Internal Server Error: " + type(e).__name__ + " " + str(e))
             raise
 
-import tkinter as tk
-from tkinter import messagebox
-from socketserver import ThreadingMixIn
-
 class ThreadedHTTPServer(ThreadingMixIn, HTTPServer):
     pass
 
@@ -122,15 +122,15 @@ def runServer(address='localhost', port=8000):
     serve = threading.Thread(target=httpd.serve_forever)
     serve.daemon = True
     serve.start()
+    webbrowser.open("http://"+address+":"+str(port))
     return serve
 
-import webbrowser
 if __name__ == '__main__':
     class ServerConsole(tk.Tk):
         def hyperlink(self, event):
             widget = self.winfo_containing(event.x_root, event.y_root)
             if widget == event.widget:
-                webbrowser.open_new(event.widget.cget("text"))
+                webbrowser.open(event.widget.cget("text"))
             self.unhighlight(event)
         def highlight(self, event):
             event.widget.config(fg="red")

@@ -195,7 +195,7 @@ class Exfiltrator(object):
     def fetch_to_file(self, url, to_file):
         file_dir = os.path.dirname(to_file)
         if not os.path.exists(file_dir):
-            os.makedirs(file_dir)
+            os.makedirs(file_dir, exist_ok=True)
         # don't download twice, but retry on timeouts
         while not os.path.exists(to_file):
             try:

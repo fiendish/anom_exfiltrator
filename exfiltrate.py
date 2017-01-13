@@ -124,12 +124,12 @@ class Exfiltrator(object):
         finally:
             return
 
-    def generateViewer(self):
+    def generateViewer(self, url_postfix=""):
         thumbnails = ""            
         for page in range(self._first_page, self._last_page+1):
             p = self._storagedir + "_" + (('%0'+str(self._pad)+"d") % page)
-            thumb = Templates.thumbnail.replace("%%URL%%", p + ".jpg")
-            thumb = thumb.replace("%%THUMB%%", "thumbs/"+p+"_tnl.jpg")
+            thumb = Templates.thumbnail.replace("%%URL%%", p + ".jpg" + url_postfix)
+            thumb = thumb.replace("%%THUMB%%", "thumbs/"+p+"_tnl.jpg" + url_postfix)
             thumb = thumb.replace("%%REF%%", "Page "+str(page))
             thumbnails += thumb           
         html = Templates.html
@@ -219,7 +219,7 @@ class Exfiltrator(object):
             max_y = 50
             max_x = 50
             y = 0
-            print("Fetching pieces of page "+str(page)+".")
+            print("Fetching pieces of " + self._document + " page " + str(page) + ".")
             while y < max_y:
                 x = 0
                 while x < max_x:
@@ -245,7 +245,7 @@ class Exfiltrator(object):
                 y += 1
 
             print("")
-            print("Assembling page "+str(page)+".")
+            print("Assembling " + self._document + " page " + str(page) + ".")
 
             try:
                 # GraphicsMagick Montage is perfect for reassembling the tiles
@@ -259,7 +259,7 @@ class Exfiltrator(object):
                 if not os.listdir(storage):
                     os.rmdir(storage)
 
-        print("Finished page "+str(page)+".")
+        print("Finished " + self._document + " page " + str(page) + ".")
         if no_save:
             f = open(pageFile, "rb").read()
             os.remove(pageFile)

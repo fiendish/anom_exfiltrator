@@ -41,12 +41,12 @@ import os
 import tempfile
 
 tempdir = tempfile.TemporaryDirectory()
-exfilt = None
+
+def new_exfilt(url):
+    return exfiltrate.Exfiltrator(url, tempdir.name)
 
 def exit_handler(signal=None, b=None):
     print("Shutting down web interface")
-    if exfilt:
-        exfilt.die()
     sys.exit(0)
 
 signal.signal(signal.SIGINT, exit_handler)
@@ -80,28 +80,32 @@ class ExfiltrateWebRequestHandler(SimpleHTTPRequestHandler):
         try:
             path = self.path.lstrip("/")
             basepath = urllib.parse.urlparse(path).path
+            qs = urllib.parse.urlparse(path).query
+            url = urllib.parse.parse_qs(qs).get('url', [""])[0].strip()
             if path == "":
                 self.html_response(open("index.html", "r").read())
-            elif basepath == "exfiltrate_query":
-                qs = urllib.parse.urlparse(path).query
-                url = urllib.parse.parse_qs(qs).get('url')
-                if url is not None:
-                    url = url[0].strip()
-                global exfilt
-                if exfilt:
-                    exfilt.die()
-                # Replace the global exfiltrator with a new one so we can
-                # keep working while the old one cleans up.
-                exfilt = exfiltrate.Exfiltrator(url, tempdir.name)
-                self.html_response(exfilt.generateViewer())
+            elif basepath == "browse":
+                if url is not "":
+                    exfilt = new_exfilt(url)
+                    self.html_response(exfilt.generateViewer("?"+qs))
+                else:
+                    self.text_response("Your request is missing an ANOM URL. Go back and try again.")
                 return
-            elif path.split("/")[0] == 'thumbs' and path.endswith("_tnl.jpg"):
-                page = int(path.split("_")[-2])
-                self.image_response( exfilt.fetch_thumbnail(page, True) )
+            elif basepath.split("/")[0] == 'thumbs' and basepath.endswith("_tnl.jpg"):
+                if url is not "":
+                    exfilt = new_exfilt(url)
+                    page = int(basepath.split("_")[-2])
+                    self.image_response( exfilt.fetch_thumbnail(page, True) )
+                else:
+                    self.text_response("Your request is missing an ANOM URL. Go back and try again.")
                 return
-            elif path.endswith(".jpg"):
-                page = int(path.split("_")[-1].split(".")[0])
-                self.image_response(exfilt.fetch_page(page, True))
+            elif basepath.endswith(".jpg"):
+                if url is not "":
+                    exfilt = new_exfilt(url)
+                    page = int(basepath.split("_")[-1].split(".")[0])
+                    self.image_response(exfilt.fetch_page(page, True))
+                else:
+                    self.text_response("Your request is missing an ANOM URL. Go back and try again.")
                 return
             else:
                 SimpleHTTPRequestHandler.do_GET(self)

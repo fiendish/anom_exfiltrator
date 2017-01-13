@@ -37,6 +37,16 @@ import signal
 from socket import timeout
 import concurrent.futures
 
+
+def HumanReadableFileSize(size, precision=2):
+    suffixes=['B','KB','MB','GB','TB']
+    suffixIndex = 0
+    while size >= 1024 and suffixIndex < 4:
+        suffixIndex += 1 #increment the index of the suffix
+        size = size/1024.0 #apply the division
+    f = "%.*f" % (precision, size)
+    return "%s %s" % (f.rstrip('0').rstrip('.'), suffixes[suffixIndex])
+    
 class Templates(object):
     @property
     def thumbnail(self):
@@ -44,7 +54,9 @@ class Templates(object):
                 <a href='%%URL%%' onclick=\"\
                 document.getElementById('bg').style.display='inline';\
                 document.getElementById('image').style.display='none';\
-                document.getElementById('image').src='%%URL%%'; return false;\
+                document.getElementById('image').src='%%URL%%';\
+                document.getElementById('pagenum').innerHTML='%%REF%%<br>';\
+                return false;\
                 \">%%REF%%<br><img src='%%THUMB%%' width='100%'></a>\
                 </div><hr>"
     @property
@@ -55,7 +67,7 @@ class Templates(object):
     @property
     def frames_body(self):
         return "<div id='content'><div id='left'>%%THUMBNAILS%%</div>\
-                <div id='right'>%%TITLE%%<br>\
+                <div id='right'><span id='pagenum'></span>Title: %%TITLE%%<br>\
                 <img id='bg' style='display:none' src='loading.gif'>\
                 <img id='image' src=''\
                 onload=\"document.getElementById('bg').style.display='none';\
@@ -168,10 +180,13 @@ class Exfiltrator(object):
                     self.fetch_to_file(url, jp2)
                     subprocess.run(["gm", "mogrify", "-format", "jpg", jp2])
                     os.remove(jp2)
+                    f = open(thumbpath, "rb").read()
                     if no_save:
-                        f = open(thumbpath, "rb").read()
                         os.remove(thumbpath)
-                        return f
+                    else:
+                        print(".", end="")
+                        sys.stdout.flush()
+                    return f
             except urllib.error.HTTPError as e:
                 if e.code == 404 and url != fallback:
                     url = fallback
@@ -236,6 +251,7 @@ class Exfiltrator(object):
                         self.fetch_to_file(tileURL, tileDest)
                         successful_downloads.append(tileDest)
                         print(".", end="")
+                        sys.stdout.flush()
                         x += 1
                     except urllib.error.HTTPError as e:
                         if e.code == 404:
@@ -258,27 +274,35 @@ class Exfiltrator(object):
                                 + successful_downloads + [pageFile],
                                 check=True, stderr=open(os.devnull, 'w'))
             except:
-                os.remove(pageFile)
+                try:
+                    os.remove(pageFile)
+                except:
+                    pass
                 raise
             finally:
                 # Clean up. Erase downloaded tile images for the assembled page.
                 self.cleanup(os.path.join(storage, fileName))
 
-        print("Finished " + self._document + " page " + str(page) + ".")
+        f = open(pageFile, "rb").read()
+        print("Finished " + self._document + " page " + str(page) + ". "
+             + HumanReadableFileSize(len(f)))
         if no_save:
-            f = open(pageFile, "rb").read()
             os.remove(pageFile)
-            return f
-        return
+        return f
 
-    def fetch_desired_pages(self, start=None, end=None):
+    def fetch_desired_pages(self, start=None, end=None, warn=False):
         if not start:
             start = self._first_page
         if not end:
             end = self._last_page
+        total = 0
         for page in range(start, end+1):
             self.exitIfQuit()
-            self.fetch_page(page)
+            print("")
+            total += len(self.fetch_page(page))
+            n = page - start + 1
+            print("Estimated total size of all images: "
+                 + HumanReadableFileSize((total/n) * (end-start)))
 
     def exfiltrate(self, start=None, end=None):
         print("")
@@ -299,7 +323,7 @@ class Exfiltrator(object):
         self.exitIfQuit()
         print("Done fetching thumbnails")
         print("Fetching pages")
-        self.fetch_desired_pages(start, end)
+        self.fetch_desired_pages(start, end, True)
 
         print("")
         print("Done!")

@@ -115,8 +115,7 @@ class ExfiltrateWebRequestHandler(SimpleHTTPRequestHandler):
         except SystemExit:
             return
         except Exception as e:
-            self.text_response("Internal Server Error: " + type(e).__name__ + " " + str(e))
-            raise
+            return
 
 class ThreadedHTTPServer(ThreadingMixIn, HTTPServer):
     pass

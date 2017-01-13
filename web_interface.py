@@ -83,10 +83,11 @@ class ExfiltrateWebRequestHandler(SimpleHTTPRequestHandler):
             qs = urllib.parse.urlparse(path).query
             url = urllib.parse.parse_qs(qs).get('url', [""])[0].strip()
             if path == "":
-                self.html_response(open("index.html", "r").read())
+                html = '<form action="ANOM?">Copy/Paste the ANOM link URL into this box <br>It should look a bit like:  <span style="font-size:85%;color:green;">http://anom.archivesnationales.culture.gouv.fr/p2w/?dossier=/collection/INVENTAIRES/DPPC/NMD/&first=ETAT_CIVIL_MER_018&last=ETAT_CIVIL_MER_022&title=Delsol,+Auguste+12+d%C3%A9cembre+1828</span><br><br><textarea rows="10" cols="50" name="url" value=""></textarea><br><input type="submit" name="action" value="Browse" /><input type="submit" name="action" value="Export Entire Document" /></form><br><br><hr>For instructions on how to get the link, see: <a target="_blank" href="https://github.com/fiendish/anom_exfiltrator#walkthrough">https://github.com/fiendish/anom_exfiltrator#walkthrough</a>'
+                self.html_response(html)
             elif basepath == "ANOM":
                 if url is not "":
-                    action = urllib.parse.parse_qs(qs)['action']
+                    action = urllib.parse.parse_qs(qs)['action'][0]
                     if action == "Browse":
                         exfilt = new_exfilt(url)
                         self.html_response(exfilt.generateViewer(True, "?"+qs))

@@ -84,13 +84,42 @@ class ExfiltrateWebRequestHandler(SimpleHTTPRequestHandler):
             url = urllib.parse.parse_qs(qs).get('url', [""])[0].strip()
             if path == "":
                 self.html_response(open("index.html", "r").read())
-            elif basepath == "browse":
+            elif basepath == "ANOM":
                 if url is not "":
-                    exfilt = new_exfilt(url)
-                    self.html_response(exfilt.generateViewer(True, "?"+qs))
+                    action = urllib.parse.parse_qs(qs)['action']
+                    if action == "Browse":
+                        exfilt = new_exfilt(url)
+                        self.html_response(exfilt.generateViewer(True, "?"+qs))
+                    else: # confirm exfiltrate
+                        exfilt = exfiltrate.Exfiltrator(url)
+                        body = "Please confirm that you want to exfiltrate the entire document.<br>"\
+                               "If it has many pages, the process could take a long time and consume hundreds of megabytes of disk space.<br>"\
+                               "<br>Title: " + exfilt._title + "<br>"\
+                               "Page count: " + str(exfilt._last_page - exfilt._first_page) + "<br>"\
+                               "<br>Files will be saved in: " + exfilt._storagedir + "<br>"\
+                               "<br><form action='Exfiltrate?'>"\
+                               "<input type='hidden' name='url' value='"+url+"'>"\
+                               "<input type='submit' value='Confirm Exfiltrate' />"\
+                               "</form><br><br><a href='/'>I changed my mind. Go back...</a>"
+                        html = exfiltrate.Templates.html.replace("%%BODY%%", body)
+                        self.html_response(html)
                 else:
                     self.text_response("Your request is missing an ANOM URL. Go back and try again.")
                 return
+            elif basepath == "Exfiltrate":
+                exfilt = exfiltrate.Exfiltrator(url)
+                body = "Now exfiltrating your document. Please wait.<br>"\
+                       "If it has many pages, the process could take a long time and consume hundreds of megabytes of disk space.<br>"\
+                       "<br>Title: " + exfilt._title + "<br>"\
+                       "Page count: " + str(exfilt._last_page - exfilt._first_page) + "<br>"\
+                       "<br>Files will be saved in: " + exfilt._storagedir + "<br><br>"\
+                       "<br>Watch the ANOM Exfiltrator Web Interface Console to monitor progress."\
+                       "<br>To halt this process you will need to quit the Interface Console."
+                html = exfiltrate.Templates.html.replace("%%BODY%%", body)
+                self.html_response(html)
+                t = threading.Thread(target=exfilt.exfiltrate)
+                t.daemon = True
+                t.start()
             elif basepath.split("/")[0] == 'thumbs' and basepath.endswith("_tnl.jpg"):
                 if url is not "":
                     exfilt = new_exfilt(url)
@@ -115,7 +144,7 @@ class ExfiltrateWebRequestHandler(SimpleHTTPRequestHandler):
         except SystemExit:
             return
         except Exception as e:
-            return
+            self.text_response(str(e))
 
 class ThreadedHTTPServer(ThreadingMixIn, HTTPServer):
     pass
@@ -176,7 +205,7 @@ if __name__ == '__main__':
                         
             # Send prints to the GUI.
             # But don't send stderr unless you want to see all the server
-            # request messages.
+            # request garbage.
             sys.stdout = TextRedirector(text)
             self.server = runServer()
 

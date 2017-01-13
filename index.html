@@ -6,10 +6,14 @@
 </head>
 
 <body>
-   <form action="browse?">
+   <form action="ANOM?">
       Copy/Paste the ANOM link URL into this box <br>It should look a bit like:  <span style="font-size:85%;color:green;">http://anom.archivesnationales.culture.gouv.fr/p2w/?dossier=/collection/INVENTAIRES/DPPC/NMD/&first=ETAT_CIVIL_MER_018&last=ETAT_CIVIL_MER_022&title=Delsol,+Auguste+12+d%C3%A9cembre+1828</span><br><br>
       <textarea rows="10" cols="50" name="url" value=""></textarea><br>
-      <input type="submit" value="Submit">
+      <input type="submit" name="action" value="Browse" />
+      <input type="submit" name="action" value="Export Entire Document" />
    </form>
+   <br><br>
+   <hr>
+   For instructions on how to get the link, see: <a target="_blank" href="https://github.com/fiendish/anom_exfiltrator#walkthrough">https://github.com/fiendish/anom_exfiltrator#walkthrough</a>
 </body>
 </html>

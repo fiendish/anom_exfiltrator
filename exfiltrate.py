@@ -87,7 +87,7 @@ class Templates(object):
 Templates = Templates() # properties only work on instances
 
 class Exfiltrator(object):
-    def __init__(self, url, storage_prefix=""):
+    def __init__(self, url, storage_prefix="exfiltrated_documents"):
         self._executor = concurrent.futures.ThreadPoolExecutor(max_workers=4)
         self._storage_prefix = storage_prefix
         self._quit = False

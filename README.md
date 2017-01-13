@@ -14,8 +14,9 @@ Anyway, they way they do it now makes their digital archive documents rather dif
 The first step to making them easier to use is getting them out.
 
 ## Dependencies
-* Python3 - https://www.python.org/downloads/
 * GraphicsMagick - http://www.graphicsmagick.org/README.html
+  - For MacOS, it's easiest to install GraphicsMagick via Homebrew. Get Homebrew from http://brew.sh/ and then after it's installed invoke `brew install graphicsmagick`
+* Python3 - https://www.python.org/downloads/
 
 ## Usage
 `python3 exfiltrate.py '<document_applet_url>' [first_page] [last_page]`

@@ -75,7 +75,7 @@ class Templates(object):
 Templates = Templates() # properties only work on instances
 
 class Exfiltrator(object):
-    def __init__(self, url, storage_prefix=None):
+    def __init__(self, url, storage_prefix=""):
         self._executor = concurrent.futures.ThreadPoolExecutor(max_workers=4)
         self._storage_prefix = storage_prefix
         self._quit = False
@@ -102,10 +102,12 @@ class Exfiltrator(object):
             self._document = qs['first'][0].rsplit("_", 1)[0]
             self._box = ""
         self._firstpart = o.scheme + "://" + o.netloc + qs['dossier'][0] + self._box
-        self._storagedir = self.boxstr + self._document
-        if self._storage_prefix:
-            self._storagedir = os.path.join(self._storage_prefix, self._storagedir)
+        self._storagesubdir = self.boxstr + self._document
         self._cur_page = ""
+
+    @property
+    def _storagedir(self):
+        return os.path.join(self._storage_prefix, self._storagesubdir)
 
     @property
     def boxstr(self):
@@ -124,10 +126,13 @@ class Exfiltrator(object):
         finally:
             return
 
-    def generateViewer(self, url_postfix=""):
+    def generateViewer(self, hide_prefix=False, url_postfix=""):
         thumbnails = ""            
         for page in range(self._first_page, self._last_page+1):
-            p = self._storagedir + "_" + (('%0'+str(self._pad)+"d") % page)
+            if hide_prefix:
+                p = self._storagesubdir + "_" + (('%0'+str(self._pad)+"d") % page)                
+            else:
+                p = self._storagedir + "_" + (('%0'+str(self._pad)+"d") % page)
             thumb = Templates.thumbnail.replace("%%URL%%", p + ".jpg" + url_postfix)
             thumb = thumb.replace("%%THUMB%%", "thumbs/"+p+"_tnl.jpg" + url_postfix)
             thumb = thumb.replace("%%REF%%", "Page "+str(page))

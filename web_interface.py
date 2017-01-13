@@ -87,7 +87,7 @@ class ExfiltrateWebRequestHandler(SimpleHTTPRequestHandler):
             elif basepath == "browse":
                 if url is not "":
                     exfilt = new_exfilt(url)
-                    self.html_response(exfilt.generateViewer("?"+qs))
+                    self.html_response(exfilt.generateViewer(True, "?"+qs))
                 else:
                     self.text_response("Your request is missing an ANOM URL. Go back and try again.")
                 return

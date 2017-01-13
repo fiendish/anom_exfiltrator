@@ -194,8 +194,7 @@ class Exfiltrator(object):
 
     def fetch_to_file(self, url, to_file):
         file_dir = os.path.dirname(to_file)
-        if not os.path.exists(file_dir):
-            os.makedirs(file_dir, exist_ok=True)
+        os.makedirs(file_dir, exist_ok=True)
         # don't download twice, but retry on timeouts
         while not os.path.exists(to_file):
             try:
@@ -215,8 +214,7 @@ class Exfiltrator(object):
         if not os.path.exists(pageFile):
             # Pages are composed of sub-image tiles, like a slippy map.
             # Make a temporary dir for all of the pieces.
-            if not os.path.exists(os.path.join(storage, fileName)):
-                os.makedirs(os.path.join(storage, fileName))
+            os.makedirs(os.path.join(storage, fileName), exist_ok=True)
 
             # Pages don't have uniform tile counts, so we detect
             # them for each page starting from something arbitrarily high.
@@ -225,6 +223,7 @@ class Exfiltrator(object):
             max_x = 50
             y = 0
             print("Fetching pieces of " + self._document + " page " + str(page) + ".")
+            successful_downloads = []
             while y < max_y:
                 x = 0
                 while x < max_x:
@@ -235,6 +234,7 @@ class Exfiltrator(object):
                     try:
                         tileDest = os.path.join(storage, fileName, tileFile)
                         self.fetch_to_file(tileURL, tileDest)
+                        successful_downloads.append(tileDest)
                         print(".", end="")
                         x += 1
                     except urllib.error.HTTPError as e:
@@ -254,15 +254,15 @@ class Exfiltrator(object):
 
             try:
                 # GraphicsMagick Montage is perfect for reassembling the tiles
-                subprocess.run(["gm", "montage", "-mode", "concatenate", "-quality", "80", "-tile",
-                                "%dx%d" % (max_x, max_y),
-                                os.path.join(storage, fileName, "*.JP2"),
-                                pageFile])
-            finally:        
+                subprocess.run(["gm", "montage", "-mode", "concatenate", "-quality", "80", "-tile", "%dx%d" % (max_x, max_y)]
+                                + successful_downloads + [pageFile],
+                                check=True, stderr=open(os.devnull, 'w'))
+            except:
+                os.remove(pageFile)
+                raise
+            finally:
                 # Clean up. Erase downloaded tile images for the assembled page.
                 self.cleanup(os.path.join(storage, fileName))
-                if not os.listdir(storage):
-                    os.rmdir(storage)
 
         print("Finished " + self._document + " page " + str(page) + ".")
         if no_save:

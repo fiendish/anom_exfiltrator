@@ -23,8 +23,15 @@
 #
 # Usage:
 # python3 exfiltrate.py <document_url> [first_page] [last_page]
+# or
+# import exfiltrate
+# e = exfiltrate.Exfiltrator(<document_url>, [local_storage_prefix])
+# e.fetch_thumbnail(page, [no_save=BOOL])
+# e.fetch_page(page, [no_save=BOOL])
+# e.exfiltrate(start_page, end_page)
 #
 #
+
 import sys
 sys.dont_write_bytecode = True
 
@@ -270,7 +277,7 @@ class Exfiltrator(object):
 
             try:
                 # GraphicsMagick Montage is perfect for reassembling the tiles
-                subprocess.run(["gm", "montage", "-mode", "concatenate", "-quality", "80", "-tile", "%dx%d" % (max_x, max_y)]
+                subprocess.run(["gm", "montage", "-mode", "concatenate", "-quality", "85", "-tile", "%dx%d" % (max_x, max_y)]
                                 + successful_downloads + [pageFile],
                                 check=True, stderr=open(os.devnull, 'w'))
             except:
@@ -290,7 +297,7 @@ class Exfiltrator(object):
             os.remove(pageFile)
         return f
 
-    def fetch_desired_pages(self, start=None, end=None, warn=False):
+    def fetch_desired_pages(self, start=None, end=None):
         if not start:
             start = self._first_page
         if not end:
@@ -307,7 +314,6 @@ class Exfiltrator(object):
     def exfiltrate(self, start=None, end=None):
         print("")
         print("Processing request.")
-        print("Press Ctrl+C to abort.")
         print("Completed files will be put in the "+self._storagedir+" folder.")
         print("Run again with the same parameters to resume exfiltration.")
 
@@ -323,7 +329,7 @@ class Exfiltrator(object):
         self.exitIfQuit()
         print("Done fetching thumbnails")
         print("Fetching pages")
-        self.fetch_desired_pages(start, end, True)
+        self.fetch_desired_pages(start, end)
 
         print("")
         print("Done!")

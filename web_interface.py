@@ -4,7 +4,7 @@
 #
 # Exfiltrate documents from http://anom.archivesnationales.culture.gouv.fr
 # without their filthy Java applet.
-# This is the web UI component.
+# This is the web server component.
 #
 #
 #    This program is free software: you can redistribute it and/or modify
@@ -30,9 +30,6 @@ sys.dont_write_bytecode = True
 
 from http.server import SimpleHTTPRequestHandler, HTTPServer
 from socketserver import ThreadingMixIn
-import tkinter as tk
-from tkinter import messagebox
-import webbrowser
 import exfiltrate
 import urllib
 import threading
@@ -83,44 +80,15 @@ class ExfiltrateWebRequestHandler(SimpleHTTPRequestHandler):
             qs = urllib.parse.urlparse(path).query
             url = urllib.parse.parse_qs(qs).get('url', [""])[0].strip()
             if path == "":
-                html = '<form action="ANOM?">Copy/Paste the ANOM link URL into this box <br>It should look a bit like:  <span style="font-size:85%;color:green;">http://anom.archivesnationales.culture.gouv.fr/p2w/?dossier=/collection/INVENTAIRES/DPPC/NMD/&first=ETAT_CIVIL_MER_018&last=ETAT_CIVIL_MER_022&title=Delsol,+Auguste+12+d%C3%A9cembre+1828</span><br><br><textarea rows="10" cols="50" name="url" value=""></textarea><br><input type="submit" name="action" value="Browse" /><input type="submit" name="action" value="Export Entire Document" /></form><br><br><hr>For instructions on how to get the link, see: <a target="_blank" href="https://github.com/fiendish/anom_exfiltrator#walkthrough">https://github.com/fiendish/anom_exfiltrator#walkthrough</a>'
+                html = '<form action="ANOM?">Copy/Paste the ANOM link URL into this box <br>It should look a bit like:  <span style="font-size:85%;color:green;">http://anom.archivesnationales.culture.gouv.fr/p2w/?dossier=/collection/INVENTAIRES/DPPC/NMD/&first=ETAT_CIVIL_MER_018&last=ETAT_CIVIL_MER_022&title=Delsol,+Auguste+12+d%C3%A9cembre+1828</span><br><br><textarea rows="10" cols="50" name="url" value=""></textarea><br><input type="submit" value="Browse Document" /></form><br><br><hr>For instructions on how to get the link, see: <a target="_blank" href="https://github.com/fiendish/anom_exfiltrator#walkthrough">https://github.com/fiendish/anom_exfiltrator#walkthrough</a>'
                 self.html_response(html)
             elif basepath == "ANOM":
                 if url is not "":
-                    action = urllib.parse.parse_qs(qs)['action'][0]
-                    if action == "Browse":
-                        exfilt = new_exfilt(url)
-                        self.html_response(exfilt.generateViewer(True, "?"+qs))
-                    else: # confirm exfiltrate
-                        exfilt = exfiltrate.Exfiltrator(url)
-                        body = "Please confirm that you want to exfiltrate the entire document.<br>"\
-                               "If it has many pages, the process could take a long time and consume hundreds of megabytes of disk space.<br>"\
-                               "<br>Title: " + exfilt._title + "<br>"\
-                               "Page count: " + str(exfilt._last_page - exfilt._first_page) + "<br>"\
-                               "<br>Files will be saved in: " + exfilt._storagedir + "<br>"\
-                               "<br><form action='Exfiltrate?'>"\
-                               "<input type='hidden' name='url' value='"+url+"'>"\
-                               "<input type='submit' value='Confirm Exfiltrate' />"\
-                               "</form><br><br><a href='/'>I changed my mind. Go back...</a>"
-                        html = exfiltrate.Templates.html.replace("%%BODY%%", body)
-                        self.html_response(html)
+                    exfilt = new_exfilt(url)
+                    self.html_response(exfilt.generateViewer(True, "?"+qs))
                 else:
                     self.text_response("Your request is missing an ANOM URL. Go back and try again.")
                 return
-            elif basepath == "Exfiltrate":
-                exfilt = exfiltrate.Exfiltrator(url)
-                body = "Now exfiltrating your document. Please wait.<br>"\
-                       "If it has many pages, the process could take a long time and consume hundreds of megabytes of disk space.<br>"\
-                       "<br>Title: " + exfilt._title + "<br>"\
-                       "Page count: " + str(exfilt._last_page - exfilt._first_page) + "<br>"\
-                       "<br>Files will be saved in: " + exfilt._storagedir + "<br><br>"\
-                       "<br>Watch the ANOM Exfiltrator Web Interface Console to monitor progress."\
-                       "<br>To halt this process you will need to quit the Interface Console."
-                html = exfiltrate.Templates.html.replace("%%BODY%%", body)
-                self.html_response(html)
-                t = threading.Thread(target=exfilt.exfiltrate)
-                t.daemon = True
-                t.start()
             elif basepath.split("/")[0] == 'thumbs' and basepath.endswith("_tnl.jpg"):
                 if url is not "":
                     exfilt = new_exfilt(url)
@@ -150,78 +118,10 @@ class ExfiltrateWebRequestHandler(SimpleHTTPRequestHandler):
 class ThreadedHTTPServer(ThreadingMixIn, HTTPServer):
     pass
 
-def runServer(address='localhost', port=8000):
+def runServer(address='', port=8000):
     httpd = ThreadedHTTPServer((address, port), ExfiltrateWebRequestHandler)
-    serve = threading.Thread(target=httpd.serve_forever)
-    serve.daemon = True
-    serve.start()
-    webbrowser.open("http://"+address+":"+str(port))
-    return serve
+    httpd.serve_forever()
 
 if __name__ == '__main__':
-    class ServerConsole(tk.Tk):
-        def hyperlink(self, event):
-            widget = self.winfo_containing(event.x_root, event.y_root)
-            if widget == event.widget:
-                webbrowser.open(event.widget.cget("text"))
-            self.unhighlight(event)
-        def highlight(self, event):
-            event.widget.config(fg="red")
-        def unhighlight(self, event):
-            event.widget.config(fg="blue")
+    runServer()
 
-        def __init__(self):
-            self.server = None
-            tk.Tk.__init__(self)
-            self.title("ANOM Exfiltrator Web Interface Console")
-            
-            info = tk.Frame(self)
-            info.pack(side="top", fill="x", pady=10, padx=10)
-            t0 = tk.Label(info, text="The ANOM Exfiltrator is running.", font=('',11))
-            t0.pack(side="top")
-            t1 = tk.Label(info, text="To interact with it, point your web browser to ", font=('',11))
-            t1.pack(side="left")
-
-            t2 = tk.Label(info, fg="blue", cursor="hand2", text=r"http://localhost:8000", font=('',12,'underline'))
-            t2.bind("<Button-1>", self.highlight)
-            t2.bind("<ButtonRelease-1>", self.hyperlink)
-            t2.pack(side="left")
-            
-            t3 = tk.Label(info, text=" <-- or click", font=('',11))
-            t3.pack(side="left")
-            
-            toolbar = tk.Frame(self, padx=5, pady=5)
-            toolbar.pack(side="bottom", fill="x")
-            qb = tk.Button(toolbar, text="Quit ANOM Exfiltrator", command=self.quit, padx=10, pady=10)
-            qb.pack(side="right")
-            
-            txtfrm = tk.Frame(self)
-            scrollbar = tk.Scrollbar(txtfrm)
-            scrollbar['width'] = max(18, int(scrollbar['width']))
-            text = tk.Text(txtfrm, wrap="word", yscrollcommand=scrollbar.set)
-            scrollbar['command'] = text.yview
-            scrollbar.pack(side="right", fill="y")
-            text.pack(side="left", fill="both", expand=True)
-            txtfrm.pack(fill="both", expand=True)
-                        
-            # Send prints to the GUI.
-            # But don't send stderr unless you want to see all the server
-            # request garbage.
-            sys.stdout = TextRedirector(text)
-            self.server = runServer()
-
-    class TextRedirector(object):
-        def __init__(self, widget):
-            self.widget = widget
-            self.write("Informational messages will appear here.\n")
-            self.write("----------------------------------------\n")
-        def flush(self):
-            pass
-        def write(self, txt):
-            self.widget.see("end")
-            self.widget.configure(state="normal")
-            self.widget.insert("end", txt, None)
-            self.widget.configure(state="disabled")
-
-    app = ServerConsole()
-    app.mainloop()

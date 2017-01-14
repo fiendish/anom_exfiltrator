@@ -109,7 +109,7 @@ class Exfiltrator(object):
         self._url = url
         o = urlparse(self._url)
         qs = parse_qs(o.query)
-        self._title = qs['title'][0]
+        self._title = qs.get('title', [''])[0]
         self._first_page = int(qs['first'][0].rsplit("_", 1)[1])
         self._last_page = qs['last'][0].rsplit("_", 1)[1]
         self._pad = len(self._last_page)

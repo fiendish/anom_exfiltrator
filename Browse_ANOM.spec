@@ -3,7 +3,7 @@
 block_cipher = None
 
 
-a = Analysis(['web_interface.py'],
+a = Analysis(['Browse_ANOM.py'],
              pathex=['/home/avi/anom_exfiltrator'],
              binaries=None,
              datas=[('loading.gif','.')],
@@ -21,7 +21,7 @@ exe = EXE(pyz,
           a.binaries,
           a.zipfiles,
           a.datas,
-          name='web_interface',
+          name='Browse_ANOM',
           debug=False,
           strip=False,
           upx=True,

@@ -31,16 +31,19 @@ from tkinter import messagebox
 import webbrowser
 
 class TextRedirector(object):
-    def __init__(self, widget):
+    def __init__(self, widget, err=False):
         self.widget = widget
-        self.write("Informational messages will appear here.\n")
-        self.write("----------------------------------------\n")
+        self.err = err
+        self.widget.tag_config('err', foreground='red')
     def flush(self):
         pass
     def write(self, txt):
         self.widget.see("end")
         self.widget.configure(state="normal")
-        self.widget.insert("end", txt, None)
+        if self.err:
+            self.widget.insert("end", txt, 'err')
+        else:
+            self.widget.insert("end", txt)
         self.widget.configure(state="disabled")
 
 class App(tk.Tk):
@@ -69,4 +72,6 @@ class App(tk.Tk):
         self.statustext.pack(side="left", fill="both", expand=True)
         self.statusbox.pack(side="bottom", fill="both", expand=True)
         sys.stdout = TextRedirector(self.statustext) # direct stdout to the text box
+        print("Informational messages will appear here.")
+        print("----------------------------------------")
 

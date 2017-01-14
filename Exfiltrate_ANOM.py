@@ -61,15 +61,20 @@ class AppConsole(app_base.App):
         t2 = tk.Label(info, text="Note: Very large documents could use hundreds of megabytes of disk space and take a long time to exfiltrate.", fg='red', font=('',11))
         t2.pack(side="top")
         self.exfilt = None
-
+        # direct stderr to the text box too
+        sys.stderr = app_base.TextRedirector(self.statustext, True)
+         
     def exfiltrate(self):
         if self.exfilt:
             self.exfilt.die()
-        self.exfilt = exfiltrate.Exfiltrator(self.urlentry.get())
-        t = threading.Thread(target=self.exfilt.exfiltrate)
-        t.start()
-
+        try:
+           self.exfilt = exfiltrate.Exfiltrator(self.urlentry.get().strip())
+           t = threading.Thread(target=self.exfilt.exfiltrate)
+           t.start()
+        except KeyError as e:
+           sys.stderr.write("Your document URL is missing its "+str(e)+" field.")
 
 if __name__ == '__main__':
     app = AppConsole()
     app.mainloop()
+

@@ -44,6 +44,16 @@ import signal
 from socket import timeout
 import concurrent.futures
 
+def subproc_noconsole(cmd):
+    startupinfo = None
+    if os.name == "nt":
+        startupinfo = subprocess.STARTUPINFO()
+        startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
+    subprocess.check_call(cmd,
+        stdout=subprocess.DEVNULL, 
+        stderr=subprocess.DEVNULL,
+        stdin=subprocess.DEVNULL,
+        startupinfo=startupinfo)
 
 def HumanReadableFileSize(size, precision=2):
     suffixes=['B','KB','MB','GB','TB']
@@ -182,9 +192,7 @@ class Exfiltrator(object):
                     return self.fetch_url(url)
                 else:
                     self.fetch_to_file(url, jp2)
-                    subprocess.check_call(["gm", "mogrify", "-format", "jpg", jp2],
-                                          stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
-                                          stdin=subprocess.DEVNULL)
+                    subproc_noconsole(["gm", "mogrify", "-format", "jpg", jp2])
                     os.remove(jp2)
                     f = open(thumbpath, "rb").read()
                     if no_save:
@@ -276,9 +284,8 @@ class Exfiltrator(object):
 
             try:
                 # GraphicsMagick Montage is perfect for reassembling the tiles
-                subprocess.check_call(["gm", "montage", "-mode", "concatenate", "-quality", "85", "-tile", "%dx%d" % (max_x, max_y)]
-                                + successful_downloads + [pageFile], stdout=subprocess.DEVNULL,
-                                stderr=subprocess.DEVNULL, stdin=subprocess.DEVNULL)
+                subproc_noconsole(["gm", "montage", "-mode", "concatenate", "-quality", "85", "-tile", "%dx%d" % (max_x, max_y)]
+                                + successful_downloads + [pageFile])
             except:
                 try:
                     os.remove(pageFile)

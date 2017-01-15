@@ -118,7 +118,6 @@ class ExfiltrateWebRequestHandler(SimpleHTTPRequestHandler):
         except SystemExit:
             return
         except Exception as e:
-            traceback.print_exc(file=sys.stdout)
             self.text_response(traceback.format_exc())
 
 class ThreadedHTTPServer(ThreadingMixIn, HTTPServer):

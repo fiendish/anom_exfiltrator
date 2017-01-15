@@ -34,8 +34,6 @@ import threading
 import web_interface
 import app_base
 import tkinter as tk
-from tkinter import messagebox
-import webbrowser
 
 class ServerConsole(app_base.App):
     def __init__(self):

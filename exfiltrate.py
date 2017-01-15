@@ -197,9 +197,6 @@ class Exfiltrator(object):
                     f = open(thumbpath, "rb").read()
                     if no_save:
                         os.remove(thumbpath)
-                    else:
-                        print(".", end="")
-                        sys.stdout.flush()
                     return f
             except urllib.error.HTTPError as e:
                 if e.code == 404 and url != fallback:
@@ -208,10 +205,11 @@ class Exfiltrator(object):
                     raise
 
     def fetch_all_thumbnails(self):
-        if not os.path.exists(os.path.join(self._storagedir, "thumbs")):
-            os.makedirs(os.path.join(self._storagedir, "thumbs"))
+        os.makedirs(os.path.join(self._storagedir, "thumbs"), exist_ok=True)
         pool = [self._executor.submit(self.fetch_thumbnail, page) for page in range(self._first_page, self._last_page+1)]
-        concurrent.futures.wait(pool, None, concurrent.futures.FIRST_EXCEPTION)
+        for f in concurrent.futures.as_completed(pool):
+            print(".",end="")
+        print("")
 
     def fetch_url(self, url):
         while True:
@@ -323,8 +321,7 @@ class Exfiltrator(object):
         print("Completed files will be put in the "+self._storagedir+" folder.")
         print("Run again with the same parameters to resume exfiltration.")
 
-        if not os.path.exists(self._storagedir):
-            os.makedirs(self._storagedir)
+        os.makedirs(self._storagedir, exist_ok=True)
 
         # Throw in a HTML viewer
         with open(os.path.join(self._storagedir, "index.html"), "w") as tf:

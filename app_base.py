@@ -29,22 +29,23 @@ sys.dont_write_bytecode = True
 import tkinter as tk
 from tkinter import messagebox
 import webbrowser
+import threading
 
 class TextRedirector(object):
     def __init__(self, widget, err=False):
         self.widget = widget
         self.err = err
         self.widget.tag_config('err', foreground='red')
+        self.lock = threading.Lock()
     def flush(self):
         pass
     def write(self, txt):
-        self.widget.see("end")
-        self.widget.configure(state="normal")
-        if self.err:
-            self.widget.insert("end", txt, 'err')
-        else:
-            self.widget.insert("end", txt)
-        self.widget.configure(state="disabled")
+        with self.lock:
+            self.widget.see("end")
+            if self.err:
+                self.widget.insert("end", txt, 'err')
+            else:
+                self.widget.insert("end", txt)
 
 class App(tk.Tk):
     def hyperlink(self, event):

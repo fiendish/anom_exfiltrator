@@ -83,13 +83,20 @@ class ExfiltrateWebRequestHandler(SimpleHTTPRequestHandler):
             if path == "":
                 html = '<form action="ANOM?">Copy/Paste the ANOM link URL into this box <br>It should look a bit like:  <span style="font-size:85%;color:green;">http://anom.archivesnationales.culture.gouv.fr/p2w/?dossier=/collection/INVENTAIRES/DPPC/NMD/&first=ETAT_CIVIL_MER_018&last=ETAT_CIVIL_MER_022&title=Delsol,+Auguste+12+d%C3%A9cembre+1828</span><br><br><textarea rows="10" cols="50" name="url" value=""></textarea><br><input type="submit" value="Browse Document" /></form><br><br><hr>For instructions on how to get the link, see: <a target="_blank" href="https://github.com/fiendish/anom_exfiltrator#walkthrough">https://github.com/fiendish/anom_exfiltrator#walkthrough</a>'
                 self.html_response(html)
+            elif path == "loading.gif":
+                # Concession to get one-file apps with PyInstaller
+                if hasattr(sys, '_MEIPASS'):
+                    gif_path = os.path.join(sys._MEIPASS, "loading.gif")
+                else:
+                    gif_path = "loading.gif"
+                with open(gif_path, "rb") as loading_gif:
+                    self.image_response(loading_gif.read())
             elif basepath == "ANOM":
                 if url is not "":
                     exfilt = new_exfilt(url)
                     self.html_response(exfilt.generateViewer(True, "?"+qs))
                 else:
                     self.text_response("Your request is missing an ANOM URL. Go back and try again.")
-                return
             elif basepath.split("/")[0] == 'thumbs' and basepath.endswith("_tnl.jpg"):
                 if url is not "":
                     exfilt = new_exfilt(url)
@@ -97,7 +104,6 @@ class ExfiltrateWebRequestHandler(SimpleHTTPRequestHandler):
                     self.image_response( exfilt.fetch_thumbnail(page, True) )
                 else:
                     self.text_response("Your request is missing an ANOM URL. Go back and try again.")
-                return
             elif basepath.endswith(".jpg"):
                 if url is not "":
                     exfilt = new_exfilt(url)
@@ -105,10 +111,8 @@ class ExfiltrateWebRequestHandler(SimpleHTTPRequestHandler):
                     self.image_response(exfilt.fetch_page(page, True))
                 else:
                     self.text_response("Your request is missing an ANOM URL. Go back and try again.")
-                return
             else:
                 SimpleHTTPRequestHandler.do_GET(self)
-                return
         except (ConnectionError, BrokenPipeError):
             return
         except SystemExit:

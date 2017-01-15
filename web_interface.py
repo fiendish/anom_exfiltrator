@@ -36,6 +36,7 @@ import threading
 import signal
 import os
 import tempfile
+import traceback
 
 tempdir = tempfile.TemporaryDirectory()
 
@@ -113,7 +114,8 @@ class ExfiltrateWebRequestHandler(SimpleHTTPRequestHandler):
         except SystemExit:
             return
         except Exception as e:
-            self.text_response(str(e))
+            traceback.print_exc(file=sys.stdout)
+            self.text_response(traceback.format_exc())
 
 class ThreadedHTTPServer(ThreadingMixIn, HTTPServer):
     pass

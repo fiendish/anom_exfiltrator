@@ -145,13 +145,10 @@ class Exfiltrator(object):
         finally:
             return
 
-    def generateViewer(self, hide_prefix=False, url_postfix=""):
+    def generateViewer(self, url_postfix=""):
         thumbnails = ""            
         for page in range(self._first_page, self._last_page+1):
-            if hide_prefix:
-                p = self._storagesubdir + "_" + (('%0'+str(self._pad)+"d") % page)                
-            else:
-                p = self._storagedir + "_" + (('%0'+str(self._pad)+"d") % page)
+            p = self._storagesubdir + "_" + (('%0'+str(self._pad)+"d") % page)                
             thumb = Templates.thumbnail.replace("%%URL%%", p + ".jpg" + url_postfix)
             thumb = thumb.replace("%%THUMB%%", "thumbs/"+p+"_tnl.jpg" + url_postfix)
             thumb = thumb.replace("%%REF%%", "Page "+str(page))

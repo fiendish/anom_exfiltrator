@@ -94,7 +94,7 @@ class ExfiltrateWebRequestHandler(SimpleHTTPRequestHandler):
             elif basepath == "ANOM":
                 if url is not "":
                     exfilt = new_exfilt(url)
-                    self.html_response(exfilt.generateViewer(True, "?"+qs))
+                    self.html_response(exfilt.generateViewer("?"+qs))
                 else:
                     self.text_response("Your request is missing an ANOM URL. Go back and try again.")
             elif basepath.split("/")[0] == 'thumbs' and basepath.endswith("_tnl.jpg"):

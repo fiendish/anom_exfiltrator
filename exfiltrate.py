@@ -185,7 +185,9 @@ class Exfiltrator(object):
                     return self.fetch_url(url)
                 else:
                     self.fetch_to_file(url, jp2)
-                    subprocess.check_call(["gm", "mogrify", "-format", "jpg", jp2])
+                    subprocess.check_call(["gm", "mogrify", "-format", "jpg", jp2],
+                                          stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
+                                          stdin=subprocess.DEVNULL, shell=True)
                     os.remove(jp2)
                     f = open(thumbpath, "rb").read()
                     if no_save:
@@ -278,8 +280,8 @@ class Exfiltrator(object):
             try:
                 # GraphicsMagick Montage is perfect for reassembling the tiles
                 subprocess.check_call(["gm", "montage", "-mode", "concatenate", "-quality", "85", "-tile", "%dx%d" % (max_x, max_y)]
-                                + successful_downloads + [pageFile],
-                                stderr=open(os.devnull, 'w'))
+                                + successful_downloads + [pageFile], stdout=subprocess.DEVNULL,
+                                stderr=subprocess.DEVNULL, stdin=subprocess.DEVNULL, shell=True)
             except:
                 try:
                     os.remove(pageFile)
@@ -356,4 +358,5 @@ if __name__ == '__main__':
     atexit.register(e.die)
 
     e.exfiltrate(start, end)
+
 

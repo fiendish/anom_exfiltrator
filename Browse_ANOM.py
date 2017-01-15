@@ -40,7 +40,8 @@ import webbrowser
 class ServerConsole(app_base.App):
     def __init__(self):
         app_base.App.__init__(self)
-        self.title("ANOM Document Browser Web Console")        
+        self.title("ANOM Document Browser Web Console")
+        self.quitbutton.config(text="Quit ANOM Console")
         info = tk.Frame(self)
         info.pack(side="top", fill="x", pady=10, padx=10)
         t0 = tk.Label(info, text="The ANOM Document Browser is running.", font=('',11))
@@ -59,6 +60,5 @@ if __name__ == '__main__':
     t = threading.Thread(target=web_interface.runServer)
     t.daemon = True
     t.start()
-    webbrowser.open("http://localhost:8000")
     app.mainloop()
 

@@ -30,6 +30,8 @@
 import sys
 sys.dont_write_bytecode = True
 
+import encodings.idna # work around bug in PyInstaller https://github.com/pyinstaller/pyinstaller/issues/1113
+
 import threading
 import web_interface
 import app_base

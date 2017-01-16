@@ -25,33 +25,32 @@ It's easiest to install what you need on MacOS with Homebrew.
 2. Inside the terminal, type `xcode-select --install` and press enter.
 3. When the message pops up asking if you want to install the command line developer tools, click `Install`.
 4. Install Homebrew by visiting http://brew.sh and following the instruction. (If it's not clear, you paste `/usr/bin/ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"` into the Terminal and then follow the prompts.)
-4. Then install GraphicsMagick by typing `brew install graphicsmagick`.
-5. Then, while you're at it, install Python3 with `brew install python3`.
+4. Install GraphicsMagick by typing `brew install graphicsmagick`.
+5. Install Python3 with `brew install python3`.
+6. Download and unzip https://github.com/fiendish/anom_exfiltrator/archive/master.zip
+7. Proceed to the Source Version Usage guide below.
 
 ### Windows
-If you have 64 bit Windows, download: 
-
-1. https://sourceforge.net/projects/graphicsmagick/files/graphicsmagick-binaries/1.3.25/GraphicsMagick-1.3.25-Q8-win64-dll.exe
-2. https://www.python.org/ftp/python/3.6.0/python-3.6.0-amd64.exe
-
-If you have 32 bit Windows, download: 
-
-1. https://www.python.org/ftp/python/3.6.0/python-3.6.0.exe
-2. https://sourceforge.net/projects/graphicsmagick/files/graphicsmagick-binaries/1.3.25/GraphicsMagick-1.3.25-Q8-win32-dll.exe
-
-
-If you don't know which one you have, see: https://support.microsoft.com/en-us/kb/827218 or http://www.howtogeek.com/howto/21726/how-do-i-know-if-im-running-32-bit-or-64-bit-windows-answers/
+1. Download and install GraphicsMagick. 
+  - If you have 64 bit Windows, download: https://sourceforge.net/projects/graphicsmagick/files/graphicsmagick-binaries/1.3.25/GraphicsMagick-1.3.25-Q8-win64-dll.exe
+  - If you have 32 bit Windows, download: https://sourceforge.net/projects/graphicsmagick/files/graphicsmagick-binaries/1.3.25/GraphicsMagick-1.3.25-Q8-win32-dll.exe
+  - If you don't know which one you have, see: https://support.microsoft.com/en-us/kb/827218 or http://www.howtogeek.com/howto/21726/how-do-i-know-if-im-running-32-bit-or-64-bit-windows-answers/
+2. Download and unzip https://github.com/fiendish/anom_exfiltrator/releases/download/v1.0.0/ANOM_windows_32bit.zip
+3. Proceed to the Binary Version Usage guide below.
 
 ### GNU/Linux
+GraphicsMagick and Python3 are in your distribution's package repos. You don't need my help for that.
+If you want, there are x64 binaries available at https://github.com/fiendish/anom_exfiltrator/releases/download/v1.0.0/ANOM_linux_64bit.tar.xz
 
-GraphicsMagick and Python3 are in your distribution's package repos. You don't need my help for this.
+## Source Version Usage
+In your terminal, cd to the ANOM exfiltrator package directory and run either `python3 Browse_ANOM.py` to browse ANOM documents or `python3 Exfiltrate_ANOM.py` to exfiltrate entire documents without browsing them.
 
-## Usage
-After you've installed GraphicsMagick and Python3, get the files from this repository and run...
-
-`python3 exfiltrate.py '<document_applet_url>' [first_page] [last_page]`
+## Binary Version Usage
+The packaged releases contain two binaries, one for browsing ANOM documents and one for exfiltrating entire documents without browsing them. Just run the one you want.
 
 ## Walkthrough...
+The software asks you for an ANOM URL for a document you want to view or exfiltrate. This is how you get it.
+
 1. go to http://anom.archivesnationales.culture.gouv.fr/
 ![ANOM front page](screenshots/screen1.png)
 
@@ -64,8 +63,4 @@ After you've installed GraphicsMagick and Python3, get the files from this repos
 4. Instead of clicking on the document link to load their stupid Java applet, right-click and copy the link address.
 ![copy the link url](screenshots/screen4.png)
 
-5. In a terminal with python3 installed, paste the copied link address where the above usage note says \<document_applet_url\> as shown. Don't forget to wrap it in single quotes so that your terminal doesn't choke on certain symbols.
-![running the command](screenshots/screen5.png)
-
-6. The result is a folder containing complete images of the document pages, plus a text file containing the full title.
-![resulting files](screenshots/screen6.png)
+5. Then paste the URL into the box where it asks you.

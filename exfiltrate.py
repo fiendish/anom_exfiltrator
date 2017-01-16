@@ -181,7 +181,7 @@ class Exfiltrator(object):
         url = (self._firstpart + "/" + pageDir + "/" + pageDir 
             + "_TILE_016_0000_0000.JP2")
         fallback = (self._firstpart + "/" + curPage + "_tnl.jpg")
-        jp2 = os.path.join(storage, fileName+"_tnl.JP2")
+        tofile = os.path.join(storage, fileName+"_tnl.JP2")
 
         # skip completed thumbnails, but try the actual thumbnail as fallback
         # in case zoom 16 doesn't exist for this page
@@ -191,9 +191,10 @@ class Exfiltrator(object):
                 if no_save and url.endswith(".jpg"):
                     return self.fetch_url(url)
                 else:
-                    self.fetch_to_file(url, jp2)
-                    subproc_noconsole(["gm", "mogrify", "-format", "jpg", jp2])
-                    os.remove(jp2)
+                    self.fetch_to_file(url, tofile)
+                    if tofile.endswith(".JP2"):
+                        subproc_noconsole(["gm", "mogrify", "-format", "jpg", tofile])
+                        os.remove(tofile)
                     f = open(thumbpath, "rb").read()
                     if no_save:
                         os.remove(thumbpath)
@@ -201,6 +202,7 @@ class Exfiltrator(object):
             except urllib.error.HTTPError as e:
                 if e.code == 404 and url != fallback:
                     url = fallback
+                    tofile = thumbpath
                 else:
                     raise
 

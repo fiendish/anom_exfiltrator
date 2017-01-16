@@ -38,9 +38,9 @@ It's easiest to install what you need on MacOS with Homebrew.
 2. Download and unzip https://github.com/fiendish/anom_exfiltrator/releases/download/v1.0.0/ANOM_windows_32bit.zip
 3. Proceed to the Binary Version Usage guide below.
 4. If the prepackaged binaries don't work for you, you can also try the Source Version Usage instructions, but first you must:
-  a. Install Python3 from either (64 bit) https://www.python.org/ftp/python/3.6.0/python-3.6.0-amd64.exe or (32 bit) https://www.python.org/ftp/python/3.6.0/python-3.6.0.exe
-  b. During the Python3 install process, make sure to activate the option to "Add python.exe to Path". You may need to restart your computer after installing Python3 before it starts working.
-  c. Download and unzip https://github.com/fiendish/anom_exfiltrator/archive/master.zip
+  1. Install Python3 from either (64 bit) https://www.python.org/ftp/python/3.6.0/python-3.6.0-amd64.exe or (32 bit) https://www.python.org/ftp/python/3.6.0/python-3.6.0.exe
+  2. During the Python3 install process, make sure to activate the option to "Add python.exe to Path". You may need to restart your computer after installing Python3 before it starts working.
+  3. Download and unzip https://github.com/fiendish/anom_exfiltrator/archive/master.zip
 
 ### GNU/Linux
 GraphicsMagick and Python3 are in your distribution's package repos. You don't need my help for that.

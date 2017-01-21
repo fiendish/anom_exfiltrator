@@ -19,7 +19,7 @@ The first step to making them easier to use is getting them out.
 
 ## Setup
 ### Mac OS
-It's easiest to install what you need on MacOS with Homebrew.
+It's easiest to install what you need to run this on MacOS with Homebrew.
 
 1. Go to Applications > Utilities > Terminal.app
 2. Inside the terminal, type `xcode-select --install` and press enter.
@@ -28,29 +28,25 @@ It's easiest to install what you need on MacOS with Homebrew.
 4. Install GraphicsMagick by typing `brew install graphicsmagick`.
 5. Install Python3 with `brew install python3`.
 6. Download and unzip https://github.com/fiendish/anom_exfiltrator/archive/master.zip
-7. Proceed to the Source Version Usage guide below.
+7. Proceed to the Usage Guide below.
 
 ### Windows
 0. If you don't know whether you have 32 or 64 bit Windows, see: https://support.microsoft.com/en-us/kb/827218 or http://www.howtogeek.com/howto/21726/how-do-i-know-if-im-running-32-bit-or-64-bit-windows-answers/
 1. Download and install GraphicsMagick. 
   - If you have 64 bit Windows, download: https://sourceforge.net/projects/graphicsmagick/files/graphicsmagick-binaries/1.3.25/GraphicsMagick-1.3.25-Q8-win64-dll.exe
   - If you have 32 bit Windows, download: https://sourceforge.net/projects/graphicsmagick/files/graphicsmagick-binaries/1.3.25/GraphicsMagick-1.3.25-Q8-win32-dll.exe
-2. Download and unzip https://github.com/fiendish/anom_exfiltrator/releases/download/v1.0.0/ANOM_windows_32bit.zip
-3. Proceed to the Binary Version Usage guide below.
-4. If the prepackaged binaries don't work for you, you can also try the Source Version Usage instructions, but first you must:
-  1. Install Python3 from either (64 bit) https://www.python.org/ftp/python/3.6.0/python-3.6.0-amd64.exe or (32 bit) https://www.python.org/ftp/python/3.6.0/python-3.6.0.exe
-  2. During the Python3 install process, make sure to activate the option to "Add python.exe to Path". You may need to restart your computer after installing Python3 before it starts working.
-  3. Download and unzip https://github.com/fiendish/anom_exfiltrator/archive/master.zip
+2. Download and install Python3.
+  - If you have 64 bit Windows, download: https://www.python.org/ftp/python/3.6.0/python-3.6.0-amd64.exe 
+  - If you have 32 bit Windows, download: https://www.python.org/ftp/python/3.6.0/python-3.6.0.exe
+  - During the Python3 install process, make sure to activate the option to "Add python.exe to Path". You may need to restart your computer after installing Python3 before that starts working.
+3. Download and unzip https://github.com/fiendish/anom_exfiltrator/archive/master.zip
+4. Proceed to the Usage Guide below.
 
 ### GNU/Linux
 GraphicsMagick and Python3 are in your distribution's package repos. You don't need my help for that.
-If you want, there are x64 binaries available at https://github.com/fiendish/anom_exfiltrator/releases/download/v1.0.0/ANOM_linux_64bit.tar.xz
 
-## Source Version Usage
-In your terminal, cd to the ANOM exfiltrator package directory and run either `python3 Browse_ANOM.py` to browse ANOM documents or `python3 Exfiltrate_ANOM.py` to exfiltrate entire documents without browsing them. You might need to type `python` instead of `python3` depending on the configuration of your system.
-
-## Binary Version Usage
-The packaged releases contain two binaries, one for browsing ANOM documents and one for exfiltrating entire documents without browsing them. Just run the one you want.
+## Usage Guide
+In your computer's terminal, cd to the ANOM exfiltrator package directory and run either `python3 Browse_ANOM.py` to browse ANOM documents or `python3 Exfiltrate_ANOM.py` to exfiltrate entire documents without browsing them. You might need to type `python` instead of `python3` depending on the configuration of your system.
 
 ## Walkthrough...
 The software asks you for an ANOM URL for a document you want to view or exfiltrate. This is how you get it.

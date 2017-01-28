@@ -44,6 +44,8 @@ It's easiest to install what you need to run this on MacOS with Homebrew.
 
 ### GNU/Linux
 GraphicsMagick and Python3 are in your distribution's package repos. You don't need my help for that.
+1. Download and unzip https://github.com/fiendish/anom_exfiltrator/archive/master.zip
+2. Proceed to the Usage Guide below.
 
 ## Usage Guide
 In your computer's terminal, cd to the ANOM exfiltrator package directory and run either `python3 Browse_ANOM.py` to browse ANOM documents or `python3 Exfiltrate_ANOM.py` to exfiltrate entire documents without browsing them. You might need to type `python` instead of `python3` depending on the configuration of your system.

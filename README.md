@@ -44,6 +44,7 @@ It's easiest to install what you need to run this on MacOS with Homebrew.
 
 ### GNU/Linux
 GraphicsMagick and Python3 are in your distribution's package repos. You don't need my help for that.
+
 1. Download and unzip https://github.com/fiendish/anom_exfiltrator/archive/master.zip
 2. Proceed to the Usage Guide below.
 

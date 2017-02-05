@@ -2,22 +2,18 @@
 Exfiltrate full document images from the Archives Nationales d'Outre-Mer digital archive instead of being forced to use their Java applet.
 
 ## Motivation
-ANOM gives access to digital copies of archive materials only through a lol-welcome-to-the-90s Java applet. The documents themselves are served up as small fragments of pages which are then stitched together on the screen, just like a tile server for a [tiled web map](https://en.wikipedia.org/wiki/Tiled_web_map). 
+ANOM gives free access (yay!) to digital copies of archive materials only through a lol-welcome-to-the-90s Java applet (boo!). Each page of each document is served up in small fragments which are then stitched together on the screen (technical note: this is just like a tile server for a [tiled web map](https://en.wikipedia.org/wiki/Tiled_web_map)). There's no good reason for them to do it that way today and many bad ones. It's archaic, likely vestigial from an era before there were better methods.
 
-\<rant\>
+Anyway, the way they do it now makes their digital archive documents more difficult to use.
+The first step to making them easier to use is exfiltrating them past the applet barrier. 
 
-As far as I can tell, there's no good reason for them to do that. If they're saving anything at all on bandwidth, which I kinda doubt, they're losing it on some janky-ass 90s arcane storage infrastructure. There are only 3 image zoom levels judging by the applet's GET requests observed by Wireshark, and the use case for these documents is as far away from diving into google maps as you can get. Researchers would be far better served by having thumbnail, medium, and full size whole images available without hoops. Hell, it's doable without even changing the tech just by treating each layer as one big tile.
-
-\</rant\>
-
-Anyway, they way they do it now makes their digital archive documents rather difficult to use.
-The first step to making them easier to use is getting them out.
+Want to throw all the document pages into a big PDF and carry it around with you? Maybe read it on the bus or airplane? Now you can with little effort. ([On Mac](http://apple.stackexchange.com/questions/11163/how-do-i-combine-two-or-more-images-to-get-a-single-pdf-file), [On Windows](http://www.howtogeek.com/248462/how-to-combine-images-into-one-pdf-file-in-windows/), [On GNU/Linux](https://gitlab.mister-muffin.de/josch/img2pdf))
 
 ## Dependencies
 * GraphicsMagick - http://www.graphicsmagick.org/README.html
 * Python3 - https://www.python.org/downloads/
 
-## Setup
+## Installation / Setup
 ### Mac OS
 It's easiest to install what you need to run this on MacOS with Homebrew.
 

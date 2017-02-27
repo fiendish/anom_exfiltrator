@@ -10,6 +10,8 @@ The first step to making them easier to use is exfiltrating them past the applet
 Want to throw all the document pages into a big PDF and carry it around with you? Maybe read it on the bus or airplane? Now you can with little effort. ([On Mac](https://apple.stackexchange.com/questions/11163/how-do-i-combine-two-or-more-images-to-get-a-single-pdf-file), [On Windows](http://www.howtogeek.com/248462/how-to-combine-images-into-one-pdf-file-in-windows/), [On GNU/Linux](https://gitlab.mister-muffin.de/josch/img2pdf))
 
 ## Installation / Setup
+This package requires Python3 and GraphicsMagick. Read further for instructions on installing them first.
+
 ### Mac OS
 It's easiest to install what you need to run this on MacOS with Homebrew.
 
@@ -40,7 +42,7 @@ It's easiest to install what you need to run this on MacOS with Homebrew.
 1. Download and unzip https://github.com/fiendish/anom_exfiltrator/archive/master.zip
 2. In your computer's terminal, cd to the ANOM exfiltrator package directory that you just unzipped and run either `python3 Browse_ANOM.py` to browse ANOM documents or `python3 Exfiltrate_ANOM.py` to exfiltrate entire documents without browsing them. You might need to type `python` instead of `python3` depending on the configuration of your system.
 
-## Walkthrough...
+## Getting URLs...
 The software asks you for an ANOM URL for a document you want to view or exfiltrate. This is how you get it.
 
 1. go to http://anom.archivesnationales.culture.gouv.fr/

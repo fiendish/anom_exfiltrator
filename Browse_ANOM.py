@@ -1,4 +1,4 @@
-#!/usr/bin/env python3  
+#!/usr/bin/env python3
 #
 # Copyright 2016 (c) Avital Kelman
 #
@@ -27,15 +27,16 @@
 #
 #
 
+import encodings.idna  # NOQA # work around bug in PyInstaller https://github.com/pyinstaller/pyinstaller/issues/1113
 import sys
+import threading
+import tkinter as tk
+
+import app_base
+import web_interface
+
 sys.dont_write_bytecode = True
 
-import encodings.idna # work around bug in PyInstaller https://github.com/pyinstaller/pyinstaller/issues/1113
-
-import threading
-import web_interface
-import app_base
-import tkinter as tk
 
 class ServerConsole(app_base.App):
     def __init__(self):
@@ -44,21 +45,25 @@ class ServerConsole(app_base.App):
         self.quitbutton.config(text="Quit ANOM Console")
         info = tk.Frame(self)
         info.pack(side="top", fill="x", pady=10, padx=10)
-        t0 = tk.Label(info, text="The ANOM Document Browser is running.", font=('',11))
+        t0 = tk.Label(info, text="The ANOM Document Browser is running.",
+                      font=('', 11))
         t0.pack(side="top")
-        t1 = tk.Label(info, text="To interact with it, point your web browser to ", font=('',11))
+        t1 = tk.Label(info,
+                      text="To interact with it, point your web browser to ",
+                      font=('', 11))
         t1.pack(side="left")
-        t2 = tk.Label(info, fg="blue", cursor="hand2", text="http://localhost:8000", font=('',12,'underline'))
+        t2 = tk.Label(info, fg="blue", cursor="hand2",
+                      text="http://localhost:8000", font=('', 12, 'underline'))
         t2.bind("<Button-1>", self.highlight)
         t2.bind("<ButtonRelease-1>", self.hyperlink)
         t2.pack(side="left")
-        t3 = tk.Label(info, text=" <-- or click", font=('',11))
+        t3 = tk.Label(info, text=" <-- or click", font=('', 11))
         t3.pack(side="left")
+
 
 if __name__ == '__main__':
     app = ServerConsole()
-    t = threading.Thread(target=web_interface.runServer)
+    t = threading.Thread(target=web_interface.run_server)
     t.daemon = True
     t.start()
     app.mainloop()
-

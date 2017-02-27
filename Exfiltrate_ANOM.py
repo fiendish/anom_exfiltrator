@@ -1,4 +1,4 @@
-#!/usr/bin/env python3  
+#!/usr/bin/env python3
 #
 # Copyright 2016 (c) Avital Kelman
 #
@@ -27,17 +27,14 @@
 #
 
 import sys
+import threading
+import tkinter as tk
+
+import app_base
+import exfiltrate
+
 sys.dont_write_bytecode = True
 
-import encodings.idna # work around bug in PyInstaller https://github.com/pyinstaller/pyinstaller/issues/1113
-
-import threading
-import web_interface
-import app_base
-import tkinter as tk
-from tkinter import messagebox
-import webbrowser
-import exfiltrate
 
 class AppConsole(app_base.App):
     def __init__(self):
@@ -45,38 +42,49 @@ class AppConsole(app_base.App):
         self.title("ANOM Document Exfiltrator")
         info = tk.Frame(self)
         info.pack(side="top", fill="x", pady=10, padx=10)
-        t0 = tk.Label(info, text="Copy/Paste your ANOM URL into this box:", font=('',11))
+        t0 = tk.Label(info, text="Copy/Paste your ANOM URL into this box:",
+                      font=('', 11))
         t0.pack(side="top")
         self.urlentry = tk.Entry(info)
         self.urlentry.pack(side="top", fill="x")
         help = tk.Frame(info)
         help.pack(side="top")
-        t1 = tk.Label(help, text="For instructions on how to get the URL, see: ", font=('',11))
-        t11 = tk.Label(help, fg="blue", cursor="hand2", text="https://github.com/fiendish/anom_exfiltrator#walkthrough", font=('',12,'underline'))
+        t1 = tk.Label(help,
+                      text="For instructions on how to get the URL, see: ",
+                      font=('', 11))
+        walkurl = "https://github.com/fiendish/anom_exfiltrator#walkthrough"
+        t11 = tk.Label(help, fg="blue", cursor="hand2", text=walkurl,
+                       font=('', 12, 'underline'))
         t11.bind("<Button-1>", self.highlight)
         t11.bind("<ButtonRelease-1>", self.hyperlink)
         t1.pack(side="left")
         t11.pack(side="left")
 
-        exfiltrate_button = tk.Button(info, text="Exfiltrate ANOM Document", command=self.exfiltrate, padx=10, pady=10)
+        exfiltrate_button = tk.Button(info, text="Exfiltrate ANOM Document",
+                                      command=self.exfiltrate,
+                                      padx=10, pady=10)
         exfiltrate_button.pack(side="top")
-        t2 = tk.Label(info, text="Note: Very large documents could use hundreds of megabytes of disk space and take a long time to exfiltrate.", fg='red', font=('',11))
+        t2 = tk.Label(info, text="Note: Very large documents could use"
+                                 " hundreds of megabytes of disk space and"
+                                 " take a long time to exfiltrate.",
+                                 fg='red', font=('', 11))
         t2.pack(side="top")
         self.exfilt = None
         # direct stderr to the text box too
         sys.stderr = app_base.TextRedirector(self.statustext, True)
-         
+
     def exfiltrate(self):
         if self.exfilt:
             self.exfilt.die()
         try:
-           self.exfilt = exfiltrate.Exfiltrator(self.urlentry.get().strip())
-           t = threading.Thread(target=self.exfilt.exfiltrate)
-           t.start()
+            self.exfilt = exfiltrate.Exfiltrator(self.urlentry.get().strip())
+            t = threading.Thread(target=self.exfilt.exfiltrate)
+            t.start()
         except KeyError as e:
-           sys.stderr.write("Your document URL is missing its "+str(e)+" field.")
+            sys.stderr.write("Your document URL is missing its % field."
+                             % str(e))
+
 
 if __name__ == '__main__':
     app = AppConsole()
     app.mainloop()
-

@@ -52,7 +52,7 @@ class AppConsole(app_base.App):
         t1 = tk.Label(help,
                       text="For instructions on how to get the URL, see: ",
                       font=('', 11))
-        walkurl = "https://github.com/fiendish/anom_exfiltrator#walkthrough"
+        walkurl = "https://github.com/fiendish/anom_exfiltrator#getting-urls"
         t11 = tk.Label(help, fg="blue", cursor="hand2", text=walkurl,
                        font=('', 12, 'underline'))
         t11.bind("<Button-1>", self.highlight)

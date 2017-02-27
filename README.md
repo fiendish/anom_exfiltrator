@@ -48,13 +48,12 @@ The software asks you for an ANOM URL for a document you want to view or exfiltr
 1. go to http://anom.archivesnationales.culture.gouv.fr/
 ![ANOM front page](screenshots/screen1.png)
 
-2. Click on the digital archive link
-![digital archive](screenshots/screen2.png)
+2. Go find whatever document you're looking for.
+![finding a document](screenshots/screen2.png)
 
-3. Go find whatever document you're looking for.
-![example document](screenshots/screen3.png)
+![still finding a document](screenshots/screen3.png)
 
-4. Instead of clicking on the document link to load their stupid Java applet, right-click and copy the link address.
+3. Instead of using their stupid Java applet, copy the link address for the document.
 ![copy the link url](screenshots/screen4.png)
 
 5. Then paste the URL into the box where it asks you.

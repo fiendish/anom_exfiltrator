@@ -101,8 +101,8 @@ class ExfiltrateWebRequestHandler(SimpleHTTPRequestHandler):
                         'it" value="Browse Document" /></form><br><br><hr>For '
                         'instructions on how to get the link, see: <a target="'
                         '_blank" href="https://github.com/fiendish/anom_exfilt'
-                        'rator#walkthrough">https://github.com/fiendish/anom_e'
-                        'xfiltrator#walkthrough</a>')
+                        'rator#getting-urls">https://github.com/fiendish/anom_'
+                        'exfiltrator#getting-urls</a>')
                 self.html_response(html)
             elif path == "loading.gif":
                 # Concession to get one-file apps with PyInstaller

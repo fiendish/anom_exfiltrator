@@ -32,6 +32,9 @@
 #
 #
 
+import sys
+sys.dont_write_bytecode = True
+
 import concurrent.futures
 import math
 import os
@@ -39,7 +42,6 @@ import re
 import shutil
 import signal
 import subprocess
-import sys
 import time
 import traceback
 import urllib.request
@@ -48,8 +50,6 @@ from collections import OrderedDict
 from html.parser import HTMLParser
 from socket import timeout
 from urllib.parse import quote, unquote
-
-sys.dont_write_bytecode = True
 
 
 class MyHTMLParser(HTMLParser):

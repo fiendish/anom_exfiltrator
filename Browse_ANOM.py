@@ -27,15 +27,16 @@
 #
 #
 
-import encodings.idna  # NOQA # work around bug in PyInstaller https://github.com/pyinstaller/pyinstaller/issues/1113
 import sys
+sys.dont_write_bytecode = True
+
+import encodings.idna  # NOQA # work around bug in PyInstaller https://github.com/pyinstaller/pyinstaller/issues/1113
 import threading
 import tkinter as tk
 
 import app_base
 import web_interface
 
-sys.dont_write_bytecode = True
 
 
 class ServerConsole(app_base.App):

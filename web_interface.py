@@ -25,9 +25,12 @@
 # python3 web_interface.py
 #
 #
+
+import sys
+sys.dont_write_bytecode = True
+
 import os
 import signal
-import sys
 import traceback
 import urllib
 from http.server import HTTPServer, SimpleHTTPRequestHandler
@@ -35,7 +38,6 @@ from socketserver import ThreadingMixIn
 
 import exfiltrate
 
-sys.dont_write_bytecode = True
 
 cache = {}
 

@@ -27,13 +27,13 @@
 #
 
 import sys
+sys.dont_write_bytecode = True
+
 import threading
 import tkinter as tk
 
 import app_base
 import exfiltrate
-
-sys.dont_write_bytecode = True
 
 
 class AppConsole(app_base.App):

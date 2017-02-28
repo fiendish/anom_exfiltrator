@@ -24,11 +24,11 @@
 #
 
 import sys
+sys.dont_write_bytecode = True
+
 import threading
 import tkinter as tk
 import webbrowser
-
-sys.dont_write_bytecode = True
 
 
 class TextRedirector(object):

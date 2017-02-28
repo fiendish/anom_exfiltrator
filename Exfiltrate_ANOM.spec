@@ -4,7 +4,7 @@ block_cipher = None
 
 
 a = Analysis(['Exfiltrate_ANOM.py'],
-             pathex=['/home/avi/anom_exfiltrator'],
+             pathex=[],
              binaries=None,
              datas=[],
              hiddenimports=[],

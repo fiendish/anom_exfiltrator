@@ -26,6 +26,7 @@
 # or
 # import exfiltrate
 # e = exfiltrate.Exfiltrator(<document_url>, [local_storage_prefix])
+# e.fetch_applet_page()
 # e.fetch_thumbnail(page, [no_save=BOOL])
 # e.fetch_page(page, [no_save=BOOL])
 # e.exfiltrate(start_page, end_page)

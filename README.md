@@ -50,10 +50,9 @@ The software asks you for an ANOM URL for a document you want to view or exfiltr
 
 2. Go find whatever document you're looking for.
 ![finding a document](screenshots/screen2.png)
-
 ![still finding a document](screenshots/screen3.png)
 
 3. Instead of using their stupid Java applet, copy the link address for the document.
 ![copy the link url](screenshots/screen4.png)
 
-5. Then paste the URL into the box where it asks you.
+5. Then paste the URL into the exfiltrator interface where it asks you.

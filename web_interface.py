@@ -25,12 +25,12 @@
 # python3 web_interface.py
 #
 #
-
 import sys
 sys.dont_write_bytecode = True
 
 import os
 import signal
+import tempfile
 import traceback
 import urllib
 from http.server import HTTPServer, SimpleHTTPRequestHandler
@@ -40,11 +40,12 @@ import exfiltrate
 
 
 cache = {}
+tempdir = tempfile.TemporaryDirectory()
 
 
 def new_exfilt(url):
     if url not in cache:
-        cache[url] = exfiltrate.Exfiltrator(url)
+        cache[url] = exfiltrate.Exfiltrator(url, tempdir.name)
         cache[url].fetch_applet_page()
     return cache[url]
 

@@ -39,10 +39,8 @@ It's easiest to install what you need to run this on MacOS with Homebrew.
 2. Proceed to the Usage Guide below.
 
 ## Usage Guide
-1. Download and unzip https://github.com/fiendish/anom_exfiltrator/archive/master.zip
-2. To Exfiltrate an entire document (which may use a lot of space on your hard drive if the document is very large), run Exfiltrate_ANOM.
-or
-2. To interactively browse one page at a time from a document, run Browse_ANOM.
+1. Download and unzip https://github.com/fiendish/anom_exfiltrator/archive/master.zip to your deskop.
+2. To Exfiltrate an entire document (which may use a lot of space on your hard drive if the document is very large), run Exfiltrate_ANOM. Or to interactively browse one page at a time from a document, run Browse_ANOM.
 
 ## Getting URLs...
 The software asks you for an ANOM URL for a document you want to view or exfiltrate. This is how you get it.

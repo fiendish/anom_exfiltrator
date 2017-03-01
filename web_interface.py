@@ -116,7 +116,13 @@ class ExfiltrateWebRequestHandler(SimpleHTTPRequestHandler):
             elif basepath == "ANOM":
                 if url is not "":
                     exfilt = new_exfilt(url)
-                    self.html_response(exfilt.generate_viewer("?"+qs))
+                    self.html_response(
+                        exfilt.generate_viewer(
+                            '?'+qs, 'Getting very large images can take some'
+                            ' time.<br>Watch the ANOM Document Browser Web'
+                            ' Console to monitor progress.'
+                        )
+                    )
                 else:
                     self.text_response("Your request is missing an ANOM URL."
                                        " Go back and try again.")
@@ -125,8 +131,7 @@ class ExfiltrateWebRequestHandler(SimpleHTTPRequestHandler):
                 if url is not "":
                     exfilt = new_exfilt(url)
                     for doc in exfilt.xml_docs.values():
-                        p = exfilt.safe_filename(doc['url'])[1:]
-                        p = p.replace("_img.xml", "_tnl.jpg")
+                        p = str(doc['pagenum']) + "_tnl.jpg"
                         if p == basepath.split("/", 1)[1]:
                             p = exfilt.fetch_xml_doc(doc)
                             self.image_response(exfilt.fetch_thumbnail(p,
@@ -138,8 +143,7 @@ class ExfiltrateWebRequestHandler(SimpleHTTPRequestHandler):
                 if url is not "":
                     exfilt = new_exfilt(url)
                     for doc in exfilt.xml_docs.values():
-                        p = exfilt.safe_filename(doc['url'])[1:]
-                        p = p.replace("_img.xml", ".jpg")
+                        p = str(doc['pagenum']) + ".jpg"
                         if p == basepath:
                             p = exfilt.fetch_xml_doc(doc)
                             self.image_response(exfilt.fetch_page(p, True))

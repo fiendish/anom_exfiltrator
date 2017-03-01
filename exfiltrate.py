@@ -123,7 +123,10 @@ class Templates(object):
         return ("<div id='content'><div id='left'>%%THUMBNAILS%%</div>"
                 "<div id='right'><span id='pagenum'></span>Title: %%TITLE%%"
                 "<br>"
-                "<img id='bg' style='display:none' src='loading.gif'>"
+                "<div style='display:none' id='bg'>"
+                "<img src='loading.gif'>"
+                "<BR>%%WATCHME%%"
+                "</div>"
                 "<img id='image' src=''"
                 "onload=\"document.getElementById('bg').style.display='none';"
                 "this.style.display='inline';\">"
@@ -161,7 +164,11 @@ class Exfiltrator(object):
         self._executor.shutdown(False)
 
     def safe_filename(self, filename):
-        return re.sub(r'[^\w\-_\.\(\)]', '_', unquote(filename))
+        sf = re.sub(r'[^\w\-_\.\(\)]', '_', unquote(filename))
+        sf = sf.replace("Archives_nationales_d_outre-mer", "")
+        while sf[0] == "_":
+            sf = sf[1:]
+        return sf
 
     def fetch_applet_page(self):
         applet_page = self.fetch_url(self._url)
@@ -200,9 +207,8 @@ class Exfiltrator(object):
     def fetch_xml_doc(self, doc):
         if doc['pagenum'] in self.pages_to_fetch:
             return self.pages_to_fetch[doc['pagenum']]
-        res = self.fetch_url(self.ANOM + doc['url'])
         path = doc['url']
-        doc_xml = ET.fromstring(res)
+        doc_xml = ET.fromstring(self.fetch_url(self.ANOM + path))
         layers = list(doc_xml.find('layers'))
 
         def layer_sorted(l):
@@ -227,9 +233,8 @@ class Exfiltrator(object):
                 'big_pattern': big_path, 'small': small_path,
                 'x': big_x, 'y': big_y, 'thumb': thumb_path,
                 'pagenum': doc['pagenum'],
-                'out': self.safe_filename(path).replace('_img.xml', ''),
-                'sanithumb': self.safe_filename(thumb_path)[1:]
-            }
+                'xml': path
+        }
         return self.pages_to_fetch[doc['pagenum']]
 
     def prefetch_xml_docs(self):
@@ -260,19 +265,20 @@ class Exfiltrator(object):
         finally:
             return
 
-    def generate_viewer(self, url_postfix=""):
+    def generate_viewer(self, url_postfix="", watchme=""):
         thumbnails = ""
         for page in self.xml_docs.values():
-            p = self.safe_filename(page['url'].replace('_img.xml', ''))[1:]
+            p = str(page['pagenum'])
             thumb = Templates.thumbnail.replace("%%URL%%", p + ".jpg"
                                                 + url_postfix)
-            thumb = thumb.replace("%%THUMB%%", "thumbs/"+p+"_tnl.jpg"
+            thumb = thumb.replace("%%THUMB%%", "thumbs/" + p + "_tnl.jpg"
                                   + url_postfix)
-            thumb = thumb.replace("%%REF%%", "Page "+str(page['pagenum']))
+            thumb = thumb.replace("%%REF%%", "Page " + p)
             thumbnails += thumb
         html = Templates.html
         html = html.replace("<head>", "<head>" + Templates.frames_style)
         html = html.replace("%%BODY%%", Templates.frames_body)
+        html = html.replace('%%WATCHME%%', watchme)
         html = html.replace("%%TITLE%%", self._document)
         html = html.replace("%%THUMBNAILS%%", thumbnails)
         return html
@@ -283,10 +289,9 @@ class Exfiltrator(object):
         storage = os.path.join(self._storagedir, "thumbs")
 
         url = self.ANOM + page['basedir'] + page['small']
-        fallback = self.ANOM + page['thumb']
-        thumbpath = os.path.join(storage, page['sanithumb'])
-        tofile = os.path.join(storage,
-                              page['sanithumb'].replace('.jpg', '.JP2'))
+        fallback_url = self.ANOM + page['thumb']
+        thumbpath = os.path.join(storage, str(page['pagenum']) + "_tnl.jpg")
+        tofile = os.path.join(storage, str(page['pagenum']) + '_tnl.JP2')
 
         # skip completed thumbnails, but try the actual thumbnail as fallback
         # in case zoom 16 doesn't exist for this page
@@ -301,13 +306,13 @@ class Exfiltrator(object):
                             ["gm", "mogrify", "-format", "jpg", tofile]
                         )
                         os.remove(tofile)
-                    f = open(thumbpath, "rb").read()
                     if no_save:
+                        f = open(thumbpath, "rb").read()
                         os.remove(thumbpath)
-                    return f
+                        return f
             except urllib.error.HTTPError as e:
-                if e.code == 404 and url != fallback:
-                    url = fallback
+                if e.code == 404 and url != fallback_url:
+                    url = fallback_url
                     tofile = thumbpath
                 else:
                     raise
@@ -317,7 +322,6 @@ class Exfiltrator(object):
                 os._exit(1)
 
     def fetch_all_thumbnails(self):
-        os.makedirs(os.path.join(self._storagedir, "thumbs"), exist_ok=True)
         pool = [
             self._executor.submit(self.fetch_thumbnail, page)
             for page in self.pages_to_fetch.values()
@@ -366,8 +370,7 @@ class Exfiltrator(object):
 
     def fetch_page(self, page, no_save=False):
         storage = self._storagedir
-
-        page_file = os.path.join(storage, page['out'][1:] + ".jpg")
+        page_file = os.path.join(storage, str(page['pagenum']) + ".jpg")
 
         print(
             "Looking for " + self._document + " page " + str(page['pagenum'])
@@ -378,8 +381,7 @@ class Exfiltrator(object):
         if not os.path.exists(page_file):
             # Pages are composed of sub-image tiles, like a slippy map.
             # Make a temporary dir for all of the pieces.
-            tmpdir = os.path.join(storage, page['out'])
-            os.makedirs(tmpdir, exist_ok=True)
+            tmpdir = os.path.join(storage,  str(page['pagenum']) + "_tiles")
 
             numpieces = page['x'] * page['y']
             print("Fetching " + str(numpieces) + " pieces of page "
@@ -403,7 +405,8 @@ class Exfiltrator(object):
                 sys.stdout.flush()
 
             print("")
-            print("Assembling page %d." % page['pagenum'])
+            print('Assembling page %d. This can take some time. Please wait...'
+                  % page['pagenum'])
             successful_downloads.sort()
             try:
                 # GraphicsMagick Montage is perfect for reassembling the tiles
@@ -444,7 +447,7 @@ class Exfiltrator(object):
                 total += len(self.fetch_page(page))
                 n = page['pagenum'] - start + 1
                 print("Estimated total size of all images: "
-                      + human_readable_file_size((total/n) * (end-start)))
+                      + human_readable_file_size((total/n) * (end-start+1)))
 
     def exfiltrate(self, start=None, end=None):
         print("")
@@ -455,11 +458,11 @@ class Exfiltrator(object):
         self.fetch_applet_page()
         print("Found.")
 
-        os.makedirs(self._storagedir, exist_ok=True)
         print("Completed files will be put in the " + self._storagedir
               + " folder.")
 
         # Throw in a HTML viewer
+        os.makedirs(self._storagedir, exist_ok=True)
         with open(os.path.join(self._storagedir, "index.html"), "w") as tf:
             tf.write(self.generate_viewer())
         self.exit_if_quit()
@@ -481,16 +484,8 @@ class Exfiltrator(object):
         print("Look in the " + self._storagedir + " folder.")
 
 
-if __name__ == '__main__':
-    start = None
-    end = None
-    if len(sys.argv) > 2:
-        start = int(sys.argv[2])
-        end = int(start)
-    if len(sys.argv) > 3:
-        end = int(sys.argv[3])
-
-    e = Exfiltrator(sys.argv[1])
+def main(path, start=None, end=None):
+    e = Exfiltrator(path)
 
     def quit(a=None, b=None):
         print("")
@@ -501,3 +496,18 @@ if __name__ == '__main__':
     atexit.register(e.die)
 
     e.exfiltrate(start, end)
+
+
+if __name__ == '__main__':
+    start = None
+    end = None
+    path = None
+    if len(sys.argv) > 1:
+        path = sys.argv[1]
+    if len(sys.argv) > 2:
+        start = int(sys.argv[2])
+        end = int(start)
+    if len(sys.argv) > 3:
+        end = int(sys.argv[3])
+    if path:
+        main(path, start, end)

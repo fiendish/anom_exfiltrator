@@ -10,7 +10,7 @@ The first step to making them easier to use is exfiltrating them past the applet
 Want to throw all the document pages into a big PDF and carry it around with you? Maybe read it on the bus or airplane? Now you can with little effort. ([On Mac](https://apple.stackexchange.com/questions/11163/how-do-i-combine-two-or-more-images-to-get-a-single-pdf-file), [On Windows](http://www.howtogeek.com/248462/how-to-combine-images-into-one-pdf-file-in-windows/), [On GNU/Linux](https://gitlab.mister-muffin.de/josch/img2pdf))
 
 ## Installation / Setup
-This package requires Python3 and GraphicsMagick. Read further for instructions on installing them first.
+This package requires Python3 and ImageMagick. Read further for instructions on installing them first.
 
 ### Mac OS
 It's easiest to install what you need to run this on MacOS with Homebrew.
@@ -19,15 +19,15 @@ It's easiest to install what you need to run this on MacOS with Homebrew.
 2. Inside the terminal, type `xcode-select --install` and press enter.
 3. When the message pops up asking if you want to install the command line developer tools, click `Install`.
 4. **Install Homebrew** by visiting http://brew.sh and following the instruction. (If it's not clear, you paste `/usr/bin/ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"` into the Terminal and then follow the prompts.)
-4. **Install GraphicsMagick** by typing `brew install graphicsmagick`.
+4. **Install ImageMagick** by typing `brew install imagemagick`.
 5. **Install Python3** with `brew install python3`.
 6. Proceed to the Usage Guide below.
 
 ### Windows
 0. If you don't know whether you have 32 or 64 bit Windows, see: https://support.microsoft.com/en-us/kb/827218 or http://www.howtogeek.com/howto/21726/how-do-i-know-if-im-running-32-bit-or-64-bit-windows-answers/
-1. **Install GraphicsMagick**. 
-  - If you have 64 bit Windows, download: https://sourceforge.net/projects/graphicsmagick/files/graphicsmagick-binaries/1.3.25/GraphicsMagick-1.3.25-Q8-win64-dll.exe
-  - If you have 32 bit Windows, download: https://sourceforge.net/projects/graphicsmagick/files/graphicsmagick-binaries/1.3.25/GraphicsMagick-1.3.25-Q8-win32-dll.exe
+1. **Install ImageMagick**. 
+  - If you have 64 bit Windows, download: https://www.imagemagick.org/download/binaries/ImageMagick-7.0.5-4-Q8-x64-dll.exe
+  - If you have 32 bit Windows, download: https://www.imagemagick.org/download/binaries/ImageMagick-7.0.5-4-Q8-x86-dll.exe
 2. **Install Python3**.
   - If you have 64 bit Windows, download: https://www.python.org/ftp/python/3.6.0/python-3.6.0-amd64.exe 
   - If you have 32 bit Windows, download: https://www.python.org/ftp/python/3.6.0/python-3.6.0.exe
@@ -35,7 +35,7 @@ It's easiest to install what you need to run this on MacOS with Homebrew.
 3. Proceed to the Usage Guide below.
 
 ### GNU/Linux
-1. Install GraphicsMagick and Python3 from your distribution's package repos.
+1. Install ImageMagick and Python3 from your distribution's package repos.
 2. Proceed to the Usage Guide below.
 
 ## Usage Guide

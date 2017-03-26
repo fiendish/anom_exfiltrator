@@ -303,7 +303,7 @@ class Exfiltrator(object):
                     self.fetch_to_file(url, tofile)
                     if tofile.endswith(".JP2"):
                         subproc_noconsole(
-                            ["gm", "mogrify", "-format", "jpg", tofile]
+                            ["mogrify", "-format", "jpg", tofile]
                         )
                         os.remove(tofile)
                     if no_save:
@@ -412,7 +412,7 @@ class Exfiltrator(object):
                 # GraphicsMagick Montage is perfect for reassembling the tiles
                 subproc_noconsole(
                     [
-                        "gm", "montage", "-mode", "concatenate", "-quality",
+                        "montage", "-mode", "concatenate", "-quality",
                         "85", "-tile", "%dx%d" % (page['x'], page['y'])
                     ]
                     + successful_downloads + [page_file]

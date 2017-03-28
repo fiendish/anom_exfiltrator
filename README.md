@@ -18,19 +18,19 @@ It's easiest to install what you need to run this on MacOS with Homebrew.
 1. Go to Applications > Utilities > Terminal.app
 2. Inside the terminal, type `xcode-select --install` and press enter.
 3. When the message pops up asking if you want to install the command line developer tools, click `Install`.
-4. **Install Homebrew** by visiting http://brew.sh and following the instruction. (If it's not clear, you paste `/usr/bin/ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"` into the Terminal and then follow the prompts.)
+4. **Install Homebrew** by visiting <http://brew.sh> and following the instruction. (If it's not clear, you paste `/usr/bin/ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"` into the Terminal and then follow the prompts.)
 4. **Install ImageMagick** by typing `brew install imagemagick`.
 5. **Install Python3** with `brew install python3`.
 6. Proceed to the Usage Guide below.
 
 ### Windows
-0. If you don't know whether you have 32 or 64 bit Windows, see: https://support.microsoft.com/en-us/kb/827218 or http://www.howtogeek.com/howto/21726/how-do-i-know-if-im-running-32-bit-or-64-bit-windows-answers/
+0. If you don't know whether you have 32 or 64 bit Windows, see: <https://support.microsoft.com/en-us/kb/827218> or <http://www.howtogeek.com/howto/21726/how-do-i-know-if-im-running-32-bit-or-64-bit-windows-answers/>
 1. **Install ImageMagick**. 
-  - If you have 64 bit Windows, download: https://www.imagemagick.org/download/binaries/ImageMagick-7.0.5-4-Q8-x64-dll.exe
-  - If you have 32 bit Windows, download: https://www.imagemagick.org/download/binaries/ImageMagick-7.0.5-4-Q8-x86-dll.exe
+  - If you have 64 bit Windows, download: <https://www.imagemagick.org/download/binaries/ImageMagick-7.0.5-4-Q8-x64-dll.exe>
+  - If you have 32 bit Windows, download: <https://www.imagemagick.org/download/binaries/ImageMagick-7.0.5-4-Q8-x86-dll.exe>
 2. **Install Python3**.
-  - If you have 64 bit Windows, download: https://www.python.org/ftp/python/3.6.0/python-3.6.0-amd64.exe 
-  - If you have 32 bit Windows, download: https://www.python.org/ftp/python/3.6.0/python-3.6.0.exe
+  - If you have 64 bit Windows, download: <https://www.python.org/ftp/python/3.6.0/python-3.6.0-amd64.exe> 
+  - If you have 32 bit Windows, download: <https://www.python.org/ftp/python/3.6.0/python-3.6.0.exe>
   - During the Python3 install process, make sure to activate the option to "`Add python.exe to Path`". You may need to restart your computer after installing Python3 before that starts working.
 3. Proceed to the Usage Guide below.
 
@@ -39,13 +39,13 @@ It's easiest to install what you need to run this on MacOS with Homebrew.
 2. Proceed to the Usage Guide below.
 
 ## Usage Guide
-1. Download and unzip https://github.com/fiendish/anom_exfiltrator/archive/master.zip to your deskop.
+1. Download and unzip <https://github.com/fiendish/anom_exfiltrator/archive/master.zip> to your deskop.
 2. To exfiltrate an entire document (which may use a lot of space on your hard drive if the document is very large), run Exfiltrate_ANOM. Or to interactively browse one page at a time from a document, run Browse_ANOM.
 
 ## Getting URLs...
 The software asks you for an ANOM URL for a document you want to view or exfiltrate. This is how you get it.
 
-1. go to http://anom.archivesnationales.culture.gouv.fr/
+1. go to <http://anom.archivesnationales.culture.gouv.fr/>
 ![ANOM front page](screenshots/screen1.png)
 
 2. Go find whatever document you're looking for.

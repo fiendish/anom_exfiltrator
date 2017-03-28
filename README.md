@@ -24,7 +24,7 @@ It's easiest to install what you need to run this on MacOS with Homebrew.
 6. Proceed to the Usage Guide below.
 
 ### Windows
-0. If you don't know whether you have 32 or 64 bit Windows, see: <https://support.microsoft.com/en-us/kb/827218> or <http://www.howtogeek.com/howto/21726/how-do-i-know-if-im-running-32-bit-or-64-bit-windows-answers/>
+0. If you don't know whether you have 32 or 64 bit Windows, first see: <https://support.microsoft.com/en-us/kb/827218> or <http://www.howtogeek.com/howto/21726/how-do-i-know-if-im-running-32-bit-or-64-bit-windows-answers/>
 1. **Install ImageMagick**. 
   - If you have 64 bit Windows, download: <https://www.imagemagick.org/download/binaries/ImageMagick-7.0.5-4-Q8-x64-dll.exe>
   - If you have 32 bit Windows, download: <https://www.imagemagick.org/download/binaries/ImageMagick-7.0.5-4-Q8-x86-dll.exe>

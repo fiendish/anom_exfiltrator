@@ -359,8 +359,8 @@ class Exfiltrator(object):
             except timeout:
                 continue
 
-    def fetch_tile(self, url, destdir):
-        dest = os.path.join(destdir, self.safe_filename(url))
+    def fetch_tile(self, url, destdir, i):
+        dest = os.path.join(destdir, ("%03d" % i) + ".JP2")
         try:
             self.fetch_to_file(self.ANOM + url, dest)
         except urllib.error.HTTPError as e:
@@ -387,18 +387,18 @@ class Exfiltrator(object):
             print("Fetching " + str(numpieces) + " pieces of page "
                   + str(page['pagenum']) + ".")
 
-            tiles_to_fetch = []
+            pool = []
+            i = 0
             for y in range(0, page['y']):
                 for x in range(0, page['x']):
-                    tiles_to_fetch.append(page['basedir']
-                                          + (page['big_pattern'] % (y, x)))
+                    tile = page['basedir'] + (page['big_pattern'] % (y, x))
+                    pool.append(
+                        self._executor.submit(self.fetch_tile, tile, tmpdir, i)
+                    )
+                    i += 1
 
             successful_downloads = []
 
-            pool = [
-                self._executor.submit(self.fetch_tile, tile, tmpdir)
-                for tile in tiles_to_fetch
-            ]
             for f in concurrent.futures.as_completed(pool):
                 successful_downloads.append(f.result())
                 print(".", end="")
@@ -409,7 +409,7 @@ class Exfiltrator(object):
                   % page['pagenum'])
             successful_downloads.sort()
             try:
-                # GraphicsMagick Montage is perfect for reassembling the tiles
+                # ImageMagick Montage is perfect for reassembling the tiles
                 subproc_noconsole(
                     [
                         "montage", "-mode", "concatenate", "-quality",

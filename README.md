@@ -1,3 +1,5 @@
+( Questions or Feedback? Contact me at patcherton.fixesthings@gmail.com )
+
 # Archives Nationales d'Outre-Mer Digital Archive Exfiltrator
 Exfiltrate full document images from the Archives Nationales d'Outre-Mer digital archive instead of being forced to use their Java applet.
 

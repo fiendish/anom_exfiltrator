@@ -1,4 +1,4 @@
-( Questions/Feedback? Either [create an "issue"](https://github.com/fiendish/anom_exfiltrator/issues) or contact me directly at patcherton.fixesthings@gmail.com )
+( Questions or Feedback? Either [create an "issue"](https://github.com/fiendish/anom_exfiltrator/issues) or contact me directly at patcherton.fixesthings@gmail.com )
 
 # Archives Nationales d'Outre-Mer Digital Archive Exfiltrator
 Exfiltrate full document images from the Archives Nationales d'Outre-Mer digital archive instead of being forced to use their Java applet.

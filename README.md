@@ -1,4 +1,4 @@
-**IMPORTANT UPDATE:** ANOM has switched now to using OpenSeadragon for their digital collections instead of their old Java applet, which means that this project is now deprecated. Another project called dezoomify at http://ophir.alwaysdata.net/dezoomify/dezoomify.html works for the new format, though there is currently (March 12, 2018) a small bug which can be worked around by following the directions I've posted at https://github.com/lovasoa/dezoomify/issues/212
+**IMPORTANT UPDATE:** ANOM has switched now to using OpenSeadragon for their digital collections instead of their old Java applet, which means that this project is now obsolete. Another project called dezoomify at http://ophir.alwaysdata.net/dezoomify/dezoomify.html works for the new format, though there is currently (March 12, 2018) a small bug which can be worked around by following the directions I've posted at https://github.com/lovasoa/dezoomify/issues/212
 
 The rest of this document remains only for historical reflection.
 

@@ -1,4 +1,6 @@
-**IMPORTANT UPDATE:** ANOM has switched now to using OpenSeadragon for their digital collections instead of their old Java applet, which means that this project is now obsolete. Another project called dezoomify at <http://ophir.alwaysdata.net/dezoomify/dezoomify.html> works for the new format.
+**IMPORTANT UPDATE:** ANOM has switched now to using OpenSeadragon for their digital collections instead of their old Java applet, which means that most of this project is now obsolete.
+
+Visit https://fiendish.github.io/anom_exfiltrator for more details.
 
 The rest of this document remains only for historical reflection.
 

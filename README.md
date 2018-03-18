@@ -1,5 +1,10 @@
-**IMPORTANT UPDATE:** ANOM has switched now to using OpenSeadragon for their digital collections instead of their old Java applet, which means that this project is now obsolete. Another project called dezoomify at <http://ophir.alwaysdata.net/dezoomify/dezoomify.html> works for the new format, though there is currently (March 12, 2018) a small bug which can be worked around by following the directions I've posted at <https://github.com/lovasoa/dezoomify/issues/212>
-
+**IMPORTANT UPDATE:** ANOM has switched now to using OpenSeadragon for their digital collections instead of their old Java applet, which means that this project is now obsolete. Another project called dezoomify at <http://ophir.alwaysdata.net/dezoomify/dezoomify.html> works for the new format.
+<p>
+  Drag the following DEZOOMIFY link to your bookmarks toolbar. (Or right-click and add to bookmarks.)
+</p>
+<p>
+<a rel="nofollow" href='javascript:(function() {if (viewer.source.tilesUrl.endsWith("_files/")) {var dzi_loc = viewer.source.tilesUrl.slice(0, -7) + ".dzi"; if (!dzi_loc.startsWith("http")) { dzi_loc = "http://anom.archivesnationales.culture.gouv.fr" + dzi_loc; } window.open("http://ophir.alwaysdata.net/dezoomify/dezoomify.html#" + dzi_loc, "_blank");}})();' onclick="return false;"> DEZOOMIFY </a>
+</p>
 The rest of this document remains only for historical reflection.
 
 ---
